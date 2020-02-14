@@ -1,2 +1,3 @@
-# docker
-Hosts DockerFiles to build MRtrix3 containers
+# Containers for MRtrix3
+
+Hosts Dockerfiles to build MRtrix3 containers
