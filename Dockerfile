@@ -31,8 +31,8 @@ RUN temp_deps='g++ git libeigen3-dev' \
 WORKDIR /opt/mrtrix3
 RUN git clone https://github.com/MRtrix3/mrtrix3.git . \
     && git checkout $MRTRIX3_GIT_COMMITISH \
-    && ./configure $CONFIGURE_FLAGS \
-    && ./build $BUILD_FLAGS
+    && ./configure $MRTRIX_CONFIGURE_FLAGS \
+    && ./build $MRTRIX_BUILD_FLAGS
 
 # Install ANTs and FSL.
 RUN apt-get -qq update \
