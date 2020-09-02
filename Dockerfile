@@ -6,15 +6,16 @@ ARG MRTRIX3_GIT_COMMITISH="master"
 ARG MRTRIX3_CONFIGURE_FLAGS=""
 # Command-line arguments for `./build`
 ARG MRTRIX3_BUILD_FLAGS=""
+# Temporary dependencies that can be removed after MRtrix3 build
+ARG MRTRIX3_TEMP_DEPS="g++ git libeigen3-dev"
 
 # Prevent programs like `apt-get` from presenting interactive prompts.
 ARG DEBIAN_FRONTEND="noninteractive"
 
 # Install MRtrix3 compile-time dependencies.
-RUN temp_deps='g++ git libeigen3-dev' \
-    && apt-get -qq update \
+RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends \
-          $temp_deps \
+          $MRTRIX3_TEMP_DEPS \
           ca-certificates \
           curl \
           libfftw3-dev \
@@ -32,7 +33,8 @@ WORKDIR /opt/mrtrix3
 RUN git clone https://github.com/MRtrix3/mrtrix3.git . \
     && git checkout $MRTRIX3_GIT_COMMITISH \
     && ./configure $MRTRIX3_CONFIGURE_FLAGS \
-    && ./build $MRTRIX3_BUILD_FLAGS
+    && ./build $MRTRIX3_BUILD_FLAGS \
+    && apt-get remove --purge -y $MRTRIX3_TEMP_DEPS
 
 # Install ANTs and FSL.
 RUN apt-get -qq update \
