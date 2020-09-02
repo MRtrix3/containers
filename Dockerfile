@@ -8,6 +8,8 @@ ARG MRTRIX3_CONFIGURE_FLAGS=""
 ARG MRTRIX3_BUILD_FLAGS=""
 # Temporary dependencies that can be removed after MRtrix3 build
 ARG MRTRIX3_TEMP_DEPS="g++ git libeigen3-dev"
+# Temporary dependencies for other software packages
+ARG OTHER_TEMP_DEPS="ca-certificates curl file wget"
 
 # Prevent programs like `apt-get` from presenting interactive prompts.
 ARG DEBIAN_FRONTEND="noninteractive"
@@ -16,9 +18,7 @@ ARG DEBIAN_FRONTEND="noninteractive"
 RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends \
           $MRTRIX3_TEMP_DEPS \
-          ca-certificates \
-          curl \
-          file \
+          $OTHER_TEMP_DEPS \
           libfftw3-dev \
           libgl1-mesa-dev \
           libpng-dev \
@@ -27,7 +27,6 @@ RUN apt-get -qq update \
           libtiff5-dev \
           python \
           qt5-default \
-          wget \
           zlib1g-dev
 
 # Clone, build, and install MRtrix3.
@@ -42,17 +41,17 @@ RUN git clone https://github.com/MRtrix3/mrtrix3.git . \
 RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends "ants=2.2.0-1ubuntu1"
 
-# Do a system cleanup.
-RUN apt-get clean \
-    && apt-get remove --purge -y `apt-mark showauto` \
-    && rm -rf /var/lib/apt/lists/*
-
 # Install FSL.
 RUN wget -q http://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py \
     && chmod 775 fslinstaller.py \
     && python2 /fslinstaller.py -d /opt/fsl -V 6.0.4 -q \
     && rm -f /fslinstaller.py \
     && ( which immv || ( rm -rf /opt/fsl/fslpython && /opt/fsl/etc/fslconf/fslpython_install.sh -f /opt/fsl || ( cat /tmp/fslpython*/fslpython_miniconda_installer.log && exit 1 ) ) )
+
+# Do a system cleanup.
+RUN apt-get clean \
+    && apt-get remove --purge -y `apt-mark showauto` $OTHER_TEMP_DEPS \
+    && rm -rf /var/lib/apt/lists/*
 
 ENV PATH="/opt/mrtrix3/bin:$PATH"
 
