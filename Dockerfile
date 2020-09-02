@@ -40,8 +40,6 @@ RUN git clone https://github.com/MRtrix3/mrtrix3.git . \
 RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends \
           "ants=2.2.0-1ubuntu1" \
-          ca-certificates \
-          curl \
           "fsl=5.0.9-5~nd18.04+1" \
           "fsl-first-data" \
     && apt-get clean \
