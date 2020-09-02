@@ -3,9 +3,9 @@ FROM neurodebian:nd18.04-non-free
 # Git commit from which to build MRtrix3.
 ARG MRTRIX3_GIT_COMMITISH="master"
 # Command-line arguments for `./configure`
-ARG MRTRIX_CONFIGURE_FLAGS=""
+ARG MRTRIX3_CONFIGURE_FLAGS=""
 # Command-line arguments for `./build`
-ARG MRTRIX_BUILD_FLAGS=""
+ARG MRTRIX3_BUILD_FLAGS=""
 
 # Prevent programs like `apt-get` from presenting interactive prompts.
 ARG DEBIAN_FRONTEND="noninteractive"
@@ -31,8 +31,8 @@ RUN temp_deps='g++ git libeigen3-dev' \
 WORKDIR /opt/mrtrix3
 RUN git clone https://github.com/MRtrix3/mrtrix3.git . \
     && git checkout $MRTRIX3_GIT_COMMITISH \
-    && ./configure $MRTRIX_CONFIGURE_FLAGS \
-    && ./build $MRTRIX_BUILD_FLAGS
+    && ./configure $MRTRIX3_CONFIGURE_FLAGS \
+    && ./build $MRTRIX3_BUILD_FLAGS
 
 # Install ANTs and FSL.
 RUN apt-get -qq update \
