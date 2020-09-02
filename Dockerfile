@@ -19,6 +19,7 @@ RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends \
           $MRTRIX3_TEMP_DEPS \
           $OTHER_TEMP_DEPS \
+          dc \
           libfftw3-dev \
           libgl1-mesa-dev \
           libpng-dev \
