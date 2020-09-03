@@ -9,7 +9,7 @@ ARG MRTRIX3_BUILD_FLAGS=""
 # Temporary dependencies that can be removed after MRtrix3 build
 ARG MRTRIX3_TEMP_DEPS="g++ git libeigen3-dev"
 # Temporary dependencies for other software packages
-ARG OTHER_TEMP_DEPS="ca-certificates curl file wget"
+ARG OTHER_TEMP_DEPS="ca-certificates curl file python wget"
 
 # Prevent programs like `apt-get` from presenting interactive prompts.
 ARG DEBIAN_FRONTEND="noninteractive"
@@ -29,7 +29,7 @@ RUN apt-get -qq update \
           libqt5opengl5-dev \
           libqt5svg5-dev \
           libtiff5-dev \
-          python \
+          python3 \
           qt5-default \
           zlib1g-dev
 
@@ -57,6 +57,9 @@ RUN wget -q http://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py -O /fslinstal
 RUN apt-get clean \
     && apt-get remove --purge -y `apt-mark showauto` $OTHER_TEMP_DEPS \
     && rm -rf /var/lib/apt/lists/*
+
+# Set up to use Python3
+RUN ln -s /usr/bin/python3 /usr/bin/python
 
 WORKDIR /work
 
