@@ -15,7 +15,7 @@ ARG OTHER_TEMP_DEPS="ca-certificates curl file python wget"
 ARG DEBIAN_FRONTEND="noninteractive"
 
 ENV FSLDIR="/opt/fsl"
-ENV PATH="/opt/mrtrix3/bin:/opt/fsl/bin:$PATH"
+ENV PATH="/opt/mrtrix3/bin:/opt/fsl/bin:/usr/lib/ants:$PATH"
 
 # Install MRtrix3 compile-time dependencies.
 RUN apt-get -qq update \
@@ -29,7 +29,8 @@ RUN apt-get -qq update \
           libqt5opengl5-dev \
           libqt5svg5-dev \
           libtiff5-dev \
-          python3 \
+          python3.6 \
+          python3-distutils \
           qt5-default \
           zlib1g-dev
 
