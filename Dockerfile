@@ -37,14 +37,15 @@ RUN git clone https://github.com/MRtrix3/mrtrix3.git . \
     && ./configure $MRTRIX3_CONFIGURE_FLAGS \
     && ./build $MRTRIX3_BUILD_FLAGS \
     && apt-get remove --purge -y $MRTRIX3_TEMP_DEPS
+WORKDIR /
 
 # Install ANTs.
 RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends "ants=2.2.0-1ubuntu1"
 
 # Install FSL.
-RUN wget -q http://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py \
-    && chmod 775 fslinstaller.py \
+RUN wget -q http://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py -O /fslinstaller.py \
+    && chmod 775 /fslinstaller.py \
     && python2 /fslinstaller.py -d /opt/fsl -V 6.0.4 -q \
     && rm -f /fslinstaller.py \
     && ( which immv || ( rm -rf /opt/fsl/fslpython && /opt/fsl/etc/fslconf/fslpython_install.sh -f /opt/fsl || ( cat /tmp/fslpython*/fslpython_miniconda_installer.log && exit 1 ) ) )
