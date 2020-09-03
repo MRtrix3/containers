@@ -14,6 +14,9 @@ ARG OTHER_TEMP_DEPS="ca-certificates curl file wget"
 # Prevent programs like `apt-get` from presenting interactive prompts.
 ARG DEBIAN_FRONTEND="noninteractive"
 
+ENV FSLDIR="/opt/fsl"
+ENV PATH="/opt/mrtrix3/bin:/opt/fsl/bin:$PATH"
+
 # Install MRtrix3 compile-time dependencies.
 RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends \
@@ -54,8 +57,6 @@ RUN wget -q http://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py -O /fslinstal
 RUN apt-get clean \
     && apt-get remove --purge -y `apt-mark showauto` $OTHER_TEMP_DEPS \
     && rm -rf /var/lib/apt/lists/*
-
-ENV PATH="/opt/mrtrix3/bin:$PATH"
 
 WORKDIR /work
 
