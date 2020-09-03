@@ -59,4 +59,4 @@ ENV PATH="/opt/mrtrix3/bin:$PATH"
 
 WORKDIR /work
 
-ENTRYPOINT ["bash", "-c", "source /etc/fsl/fsl.sh && bash $@"]
+ENTRYPOINT ["bash", "-c", "source /opt/fsl/etc/fslconf/fsl.sh && bash $@"]
