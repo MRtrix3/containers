@@ -29,8 +29,7 @@ RUN apt-get -qq update \
           libqt5opengl5-dev \
           libqt5svg5-dev \
           libtiff5-dev \
-          python3.6 \
-          python3-distutils \
+          python3 \
           qt5-default \
           zlib1g-dev
 
@@ -40,7 +39,8 @@ RUN git clone https://github.com/MRtrix3/mrtrix3.git . \
     && git checkout $MRTRIX3_GIT_COMMITISH \
     && ./configure $MRTRIX3_CONFIGURE_FLAGS \
     && ./build $MRTRIX3_BUILD_FLAGS \
-    && apt-get remove --purge -y $MRTRIX3_TEMP_DEPS
+    && apt-get remove --purge -y $MRTRIX3_TEMP_DEPS \
+    && apt-get autoremove
 WORKDIR /
 
 # Install ANTs.
@@ -56,7 +56,8 @@ RUN wget -q http://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py -O /fslinstal
 
 # Do a system cleanup.
 RUN apt-get clean \
-    && apt-get remove --purge -y `apt-mark showauto` $OTHER_TEMP_DEPS \
+    && apt-get remove --purge -y $OTHER_TEMP_DEPS \
+    && apt-get autoremove \
     && rm -rf /var/lib/apt/lists/*
 
 # Set up to use Python3
