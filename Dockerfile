@@ -40,7 +40,7 @@ RUN git clone https://github.com/MRtrix3/mrtrix3.git . \
     && ./configure $MRTRIX3_CONFIGURE_FLAGS \
     && ./build $MRTRIX3_BUILD_FLAGS \
     && apt-get remove --purge -y $MRTRIX3_TEMP_DEPS \
-    && apt-get autoremove
+    && apt-get autoremove -y
 WORKDIR /
 
 # Install ANTs.
@@ -57,7 +57,7 @@ RUN wget -q http://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py -O /fslinstal
 # Do a system cleanup.
 RUN apt-get clean \
     && apt-get remove --purge -y $OTHER_TEMP_DEPS \
-    && apt-get autoremove \
+    && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Set up to use Python3
