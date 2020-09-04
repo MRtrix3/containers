@@ -30,6 +30,7 @@ RUN apt-get -qq update \
           libqt5svg5-dev \
           libtiff5-dev \
           python3 \
+          python3-distutils \
           qt5-default \
           zlib1g-dev
 
@@ -52,7 +53,7 @@ RUN wget -q http://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py -O /fslinstal
     && chmod 775 /fslinstaller.py \
     && python2 /fslinstaller.py -d /opt/fsl -V 6.0.4 -q \
     && rm -f /fslinstaller.py \
-    && ( which immv || ( rm -rf /opt/fsl/fslpython && /opt/fsl/etc/fslconf/fslpython_install.sh -f /opt/fsl || ( cat /tmp/fslpython*/fslpython_miniconda_installer.log && exit 1 ) ) )
+    && ( which immv || ( echo "FSLPython not properly configured; re-running" && rm -rf /opt/fsl/fslpython && /opt/fsl/etc/fslconf/fslpython_install.sh -f /opt/fsl || ( cat /tmp/fslpython*/fslpython_miniconda_installer.log && exit 1 ) ) )
 
 # Do a system cleanup.
 RUN apt-get clean \
