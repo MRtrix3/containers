@@ -36,8 +36,7 @@ RUN apt-get -qq update \
 
 # Clone, build, and install MRtrix3.
 WORKDIR /opt/mrtrix3
-RUN git clone https://github.com/MRtrix3/mrtrix3.git . \
-    && git checkout $MRTRIX3_GIT_COMMITISH \
+RUN git clone -b ${MRTRIX3_GIT_COMMISH} --depth 1 https://github.com/MRtrix3/mrtrix3.git . \
     && ./configure $MRTRIX3_CONFIGURE_FLAGS \
     && ./build $MRTRIX3_BUILD_FLAGS \
     && apt-get remove --purge -y $MRTRIX3_TEMP_DEPS \
