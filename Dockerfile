@@ -14,6 +14,7 @@ ARG OTHER_TEMP_DEPS="ca-certificates curl file python wget"
 # Prevent programs like `apt-get` from presenting interactive prompts.
 ARG DEBIAN_FRONTEND="noninteractive"
 
+ENV FREESURFER_HOME="/opt/freesurfer"
 ENV FSLDIR="/opt/fsl"
 ENV PATH="/opt/mrtrix3/bin:/opt/fsl/bin:/usr/lib/ants:$PATH"
 
@@ -46,6 +47,10 @@ WORKDIR /
 # Install ANTs.
 RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends "ants=2.2.0-1ubuntu1"
+
+# Install FreeSurfer LUT
+WORKDIR /opt/freesurfer
+RUN wget -q https://raw.githubusercontent.com/freesurfer/freesurfer/v7.1.1/distribution/FreeSurferColorLUT.txt
 
 # Install FSL.
 RUN wget -q http://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py -O /fslinstaller.py \
