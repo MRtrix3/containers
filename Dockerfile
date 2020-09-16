@@ -9,15 +9,16 @@ ARG MRTRIX3_BUILD_FLAGS=""
 # Dependencies for neurodocker
 ARG NEURODOCKER_DEPS="bzip2 curl"
 # Temporary dependencies that can be removed after MRtrix3 build
-ARG MRTRIX3_TEMP_DEPS="g++ git libeigen3-dev"
+ARG MRTRIX3_TEMP_DEPS="libeigen3-dev"
 # Temporary dependencies for other software packages
-ARG OTHER_TEMP_DEPS="ca-certificates file python wget"
+ARG OTHER_TEMP_DEPS="cmake file g++ git python wget"
 
 # Prevent programs like `apt-get` from presenting interactive prompts.
 ARG DEBIAN_FRONTEND="noninteractive"
 
+ENV ANTSPATH="/opt/ants/bin/"
 ENV FSLDIR="/opt/fsl"
-ENV PATH="/opt/mrtrix3/bin:/opt/fsl/bin:/usr/lib/ants:$PATH"
+ENV PATH="/opt/mrtrix3/bin:$FSLDIR/bin:$ANTSPATH:$PATH"
 
 # Install MRtrix3 compile-time dependencies.
 RUN apt-get -qq update \
@@ -25,6 +26,7 @@ RUN apt-get -qq update \
           $NEURODOCKER_DEPS \
           $MRTRIX3_TEMP_DEPS \
           $OTHER_TEMP_DEPS \
+          ca-certificates \
           dc \
           libfftw3-dev \
           libgl1-mesa-dev \
@@ -39,19 +41,26 @@ RUN apt-get -qq update \
 
 # Clone, build, and install MRtrix3.
 WORKDIR /opt/mrtrix3
-RUN git clone -b ${MRTRIX3_GIT_COMMISH} --depth 1 https://github.com/MRtrix3/mrtrix3.git . \
+RUN git clone -b ${MRTRIX3_GIT_COMMITISH} --depth 1 https://github.com/MRtrix3/mrtrix3.git . \
     && ./configure $MRTRIX3_CONFIGURE_FLAGS \
     && ./build $MRTRIX3_BUILD_FLAGS \
     && rm -rf testing/ \
     && apt-get remove --purge -y $MRTRIX3_TEMP_DEPS \
     && apt-get autoremove -y
-WORKDIR /
 
 # Install ANTs.
-RUN apt-get -qq update \
-    && apt-get install -yq --no-install-recommends "ants=2.2.0-1ubuntu1"
+WORKDIR /opt/antssource
+RUN git clone -b v2.3.4 --depth 1 https://github.com/ANTsX/ANTs.git \
+    && mkdir /opt/antssource/build /opt/antssource/install \
+    && cmake -DCMAKE_INSTALL_PREFIX=/opt/ants -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DRUN_LONG_TESTS=OFF -DRUN_SHORT_TESTS=OFF /opt/antssource/ANTs \
+    && mkdir /opt/ants \
+    && make \
+    && cd ANTS-build \
+    && make install \
+    && rm -rf /opt/antssource
 
 # Install FSL.
+WORKDIR /
 RUN wget -q http://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py -O /fslinstaller.py \
     && chmod 775 /fslinstaller.py \
     && python2 /fslinstaller.py -d /opt/fsl -V 6.0.4 -q \
