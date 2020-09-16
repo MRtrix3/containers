@@ -3,56 +3,66 @@ FROM neurodebian:nd18.04-non-free
 # Git commit from which to build MRtrix3.
 ARG MRTRIX3_GIT_COMMITISH="master"
 # Command-line arguments for `./configure`
-ARG MRTRIX_CONFIGURE_FLAGS=""
+ARG MRTRIX3_CONFIGURE_FLAGS=""
 # Command-line arguments for `./build`
-ARG MRTRIX_BUILD_FLAGS=""
+ARG MRTRIX3_BUILD_FLAGS=""
+# Temporary dependencies that can be removed after MRtrix3 build
+ARG MRTRIX3_TEMP_DEPS="g++ git libeigen3-dev"
+# Temporary dependencies for other software packages
+ARG OTHER_TEMP_DEPS="ca-certificates curl file python wget"
 
 # Prevent programs like `apt-get` from presenting interactive prompts.
 ARG DEBIAN_FRONTEND="noninteractive"
 
+ENV FSLDIR="/opt/fsl"
+ENV PATH="/opt/mrtrix3/bin:/opt/fsl/bin:/usr/lib/ants:$PATH"
+
 # Install MRtrix3 compile-time dependencies.
-RUN temp_deps='g++ git libeigen3-dev' \
-    && apt-get -qq update \
+RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends \
-          $temp_deps \
-          ca-certificates \
-          curl \
+          $MRTRIX3_TEMP_DEPS \
+          $OTHER_TEMP_DEPS \
+          dc \
           libfftw3-dev \
           libgl1-mesa-dev \
           libpng-dev \
           libqt5opengl5-dev \
           libqt5svg5-dev \
           libtiff5-dev \
-          python \
+          python3 \
+          python3-distutils \
           qt5-default \
           zlib1g-dev
 
 # Clone, build, and install MRtrix3.
 WORKDIR /opt/mrtrix3
-RUN git clone https://github.com/MRtrix3/mrtrix3.git . \
-    && git checkout $MRTRIX3_GIT_COMMITISH \
-    && ./configure $MRTRIX_CONFIGURE_FLAGS \
-    && ./build $MRTRIX_BUILD_FLAGS
+RUN git clone -b ${MRTRIX3_GIT_COMMISH} --depth 1 https://github.com/MRtrix3/mrtrix3.git . \
+    && ./configure $MRTRIX3_CONFIGURE_FLAGS \
+    && ./build $MRTRIX3_BUILD_FLAGS \
+    && apt-get remove --purge -y $MRTRIX3_TEMP_DEPS \
+    && apt-get autoremove -y
+WORKDIR /
 
-# Install ANTs and FSL.
+# Install ANTs.
 RUN apt-get -qq update \
-    && apt-get install -yq --no-install-recommends \
-          "ants=2.2.0-1ubuntu1" \
-          ca-certificates \
-          curl \
-          "fsl=5.0.9-5~nd18.04+1" \
-          "fsl-first-data" \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    # Install eddy. The sources are private now, so neurodebian no longer provides it.
-    && . /etc/fsl/fsl.sh \
-    && cd $FSLDIR/bin \
-    && curl -fsSLO https://fsl.fmrib.ox.ac.uk/fsldownloads/patches/eddy-patch-fsl-5.0.9/centos6/eddy_openmp \
-    && ln -s eddy_openmp eddy \
-    && chmod +x eddy_openmp
+    && apt-get install -yq --no-install-recommends "ants=2.2.0-1ubuntu1"
 
-ENV PATH="/opt/mrtrix3/bin:$PATH"
+# Install FSL.
+RUN wget -q http://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py -O /fslinstaller.py \
+    && chmod 775 /fslinstaller.py \
+    && python2 /fslinstaller.py -d /opt/fsl -V 6.0.4 -q \
+    && rm -f /fslinstaller.py \
+    && ( which immv || ( echo "FSLPython not properly configured; re-running" && rm -rf /opt/fsl/fslpython && /opt/fsl/etc/fslconf/fslpython_install.sh -f /opt/fsl || ( cat /tmp/fslpython*/fslpython_miniconda_installer.log && exit 1 ) ) )
+
+# Do a system cleanup.
+RUN apt-get clean \
+    && apt-get remove --purge -y $OTHER_TEMP_DEPS \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up to use Python3
+RUN ln -s /usr/bin/python3 /usr/bin/python
 
 WORKDIR /work
 
-ENTRYPOINT ["bash", "-c", "source /etc/fsl/fsl.sh && bash $@"]
+ENTRYPOINT ["bash", "-c", "source /opt/fsl/etc/fslconf/fsl.sh && bash $@"]
