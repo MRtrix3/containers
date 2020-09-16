@@ -44,7 +44,7 @@ WORKDIR /opt/mrtrix3
 RUN git clone -b ${MRTRIX3_GIT_COMMITISH} --depth 1 https://github.com/MRtrix3/mrtrix3.git . \
     && ./configure $MRTRIX3_CONFIGURE_FLAGS \
     && ./build $MRTRIX3_BUILD_FLAGS \
-    && rm -rf testing/ \
+    && rm -rf testing/ tmp/ \
     && apt-get remove --purge -y $MRTRIX3_TEMP_DEPS \
     && apt-get autoremove -y
 
