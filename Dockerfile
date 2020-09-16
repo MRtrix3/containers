@@ -6,10 +6,12 @@ ARG MRTRIX3_GIT_COMMITISH="master"
 ARG MRTRIX3_CONFIGURE_FLAGS=""
 # Command-line arguments for `./build`
 ARG MRTRIX3_BUILD_FLAGS=""
+# Dependencies for neurodocker
+ARG NEURODOCKER_DEPS="bzip2 curl"
 # Temporary dependencies that can be removed after MRtrix3 build
 ARG MRTRIX3_TEMP_DEPS="g++ git libeigen3-dev"
 # Temporary dependencies for other software packages
-ARG OTHER_TEMP_DEPS="ca-certificates curl file python wget"
+ARG OTHER_TEMP_DEPS="ca-certificates file python wget"
 
 # Prevent programs like `apt-get` from presenting interactive prompts.
 ARG DEBIAN_FRONTEND="noninteractive"
@@ -20,6 +22,7 @@ ENV PATH="/opt/mrtrix3/bin:/opt/fsl/bin:/usr/lib/ants:$PATH"
 # Install MRtrix3 compile-time dependencies.
 RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends \
+          $NEURODOCKER_DEPS \
           $MRTRIX3_TEMP_DEPS \
           $OTHER_TEMP_DEPS \
           dc \
@@ -39,6 +42,7 @@ WORKDIR /opt/mrtrix3
 RUN git clone -b ${MRTRIX3_GIT_COMMISH} --depth 1 https://github.com/MRtrix3/mrtrix3.git . \
     && ./configure $MRTRIX3_CONFIGURE_FLAGS \
     && ./build $MRTRIX3_BUILD_FLAGS \
+    && rm -rf testing/ \
     && apt-get remove --purge -y $MRTRIX3_TEMP_DEPS \
     && apt-get autoremove -y
 WORKDIR /
@@ -62,6 +66,10 @@ RUN apt-get clean \
 
 # Set up to use Python3
 RUN ln -s /usr/bin/python3 /usr/bin/python
+
+# Import list of tests that will be used to capture external dependencies
+COPY tests.sh /tests.sh
+RUN chmod 775 /tests.sh
 
 WORKDIR /work
 
