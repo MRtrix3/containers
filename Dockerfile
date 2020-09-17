@@ -17,9 +17,10 @@ ARG OTHER_TEMP_DEPS="cmake file g++ git python wget"
 ARG DEBIAN_FRONTEND="noninteractive"
 
 ENV ANTSPATH="/opt/ants/bin/"
+ENV ARTHOME="/opt/art"
 ENV FREESURFER_HOME="/opt/freesurfer"
 ENV FSLDIR="/opt/fsl"
-ENV PATH="/opt/mrtrix3/bin:$FSLDIR/bin:$ANTSPATH:$PATH"
+ENV PATH="/opt/mrtrix3/bin:$ANTSPATH:$ARTHOME/bin:$FSLDIR/bin:$PATH"
 
 # Install MRtrix3 compile-time dependencies.
 RUN apt-get -qq update \
@@ -48,6 +49,12 @@ RUN git clone -b ${MRTRIX3_GIT_COMMITISH} --depth 1 https://github.com/MRtrix3/m
     && rm -rf testing/ tmp/ \
     && apt-get remove --purge -y $MRTRIX3_TEMP_DEPS \
     && apt-get autoremove -y
+
+# Install ACPCdetect
+WORKDIR /opt/art
+COPY acpcdetect_v2.0_LinuxCentOS6.7.tar.gz /opt/art/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
+RUN tar -xf acpcdetect_v2.0_LinuxCentOS6.7.tar.gz \
+    && rm -f acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
 
 # Install ANTs.
 WORKDIR /opt/antssource
