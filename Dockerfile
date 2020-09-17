@@ -17,6 +17,7 @@ ARG OTHER_TEMP_DEPS="cmake file g++ git python wget"
 ARG DEBIAN_FRONTEND="noninteractive"
 
 ENV ANTSPATH="/opt/ants/bin/"
+ENV FREESURFER_HOME="/opt/freesurfer"
 ENV FSLDIR="/opt/fsl"
 ENV PATH="/opt/mrtrix3/bin:$FSLDIR/bin:$ANTSPATH:$PATH"
 
@@ -58,6 +59,10 @@ RUN git clone -b v2.3.4 --depth 1 https://github.com/ANTsX/ANTs.git \
     && cd ANTS-build \
     && make install \
     && rm -rf /opt/antssource
+
+# Install FreeSurfer LUT
+WORKDIR /opt/freesurfer
+RUN wget -q https://raw.githubusercontent.com/freesurfer/freesurfer/v7.1.1/distribution/FreeSurferColorLUT.txt
 
 # Install FSL.
 WORKDIR /
