@@ -6,7 +6,8 @@ Hosts Dockerfiles to build MRtrix3 containers
 
 Following are instructions for utilising `neurodocker reprozip trace` command to minimise the size of the resulting Docker container.
 
-1.  Install `neurodocker` via `pip`
+1.  Install the `docker` and `neurodocker` Python packages:
+    `pip install docker neurodocker`
 
 1.  Build a Docker container utilising the `Dockerfile` recipe contained in this repository; here the name `mrtrix3_bloated:latest` is used:
     `docker build . -t mrtrix3_bloated:latest`
