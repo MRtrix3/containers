@@ -15,7 +15,7 @@ Following are instructions for utilising `neurodocker reprozip trace` command to
         https://www.nitrc.org/frs/download.php/10595/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
 
     1.  Build a Docker container utilising the `Dockerfile_base` recipe contained in this repository; here the name `mrtrix3_preminify:latest` is used:
-        `docker build Dockerfile_base -t mrtrix3_preminify:latest`
+        `docker build - -t mrtrix3_preminify:latest < Dockerfile_base`
 
     1.  From the root directory of a clone of this repository, download a copy of the *MRtrix3* "`script_test_data`" repository, and unzip in-place, leading to a new filled directory "`script_test_data-master/`":
         `wget https://github.com/MRtrix3/script_test_data/archive/master.zip && unzip master.zip`
