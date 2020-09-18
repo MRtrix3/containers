@@ -24,6 +24,7 @@ ENV ANTSPATH="/opt/ants/bin/"
 ENV ARTHOME="/opt/art"
 ENV FREESURFER_HOME="/opt/freesurfer"
 ENV FSLDIR="/opt/fsl"
+ENV LD_LIBRARY_PATH="/opt/ants/lib"
 ENV PATH="/opt/mrtrix3/bin:$ANTSPATH:$ARTHOME/bin:$FSLDIR/bin:$PATH"
 
 # Install system dependencies
