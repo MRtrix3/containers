@@ -36,6 +36,7 @@ RUN apt-get -qq update \
           $FSL_DEPS \
           $BUILD_TEMP_DEPS \
           $MRTRIX3_TEMP_DEPS \
+          $FSL_TEMP_DEPS \
           ca-certificates
 
 # Clone, build, and install MRtrix3
