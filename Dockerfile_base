@@ -55,7 +55,7 @@ RUN tar -xf acpcdetect_v2.0_LinuxCentOS6.7.tar.gz \
 WORKDIR /opt/antssource
 RUN git clone -b v2.3.4 --depth 1 https://github.com/ANTsX/ANTs.git \
     && mkdir /opt/antssource/build /opt/antssource/install \
-    && cmake -DBUILD_ALL_ANTS_APPS:BOOL=OFF -DBUILD_SHARED_LIBS:BOOL=ON -DBUILD_TESTING:BOOL=OFF -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/opt/ants -DRUN_LONG_TESTS:BOOL=OFF -DRUN_SHORT_TESTS:BOOL=OFF --target=N4BiasFieldCorrection \
+    && cmake -DBUILD_ALL_ANTS_APPS:BOOL=OFF -DBUILD_SHARED_LIBS:BOOL=ON -DBUILD_TESTING:BOOL=OFF -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/opt/ants -DRUN_LONG_TESTS:BOOL=OFF -DRUN_SHORT_TESTS:BOOL=OFF --target=N4BiasFieldCorrection /opt/antssource/ANTs \
     && mkdir /opt/ants \
     && make \
     && cd ANTS-build \
