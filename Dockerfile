@@ -21,12 +21,7 @@ ENV FREESURFER_HOME="/opt/freesurfer"
 ENV FSLDIR="/opt/fsl"
 ENV PATH="/opt/mrtrix3/bin:$ANTSPATH:$ARTHOME/bin:$FSLDIR/bin:$PATH"
 
-# Perform removal of packages that were necessary for constructing the base container only
-RUN apt-get remove --purge -y $NEURODOCKER_DEPS \
-    && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/*
-
-# Clone, build, and install MRtrix3, and delete unnecessary components
+# Clone, build, and install MRtrix3, and delete unnecessary content
 WORKDIR /opt/mrtrix3
 RUN git clone -b $MRTRIX3_GIT_COMMITISH --depth 1 https://github.com/MRtrix3/mrtrix3.git . \
     && ./configure $MRTRIX3_CONFIGURE_FLAGS \
@@ -35,7 +30,7 @@ RUN git clone -b $MRTRIX3_GIT_COMMITISH --depth 1 https://github.com/MRtrix3/mrt
 
 # Do a system cleanup
 RUN apt-get clean \
-    && apt-get remove --purge -y $BUILD_TEMP_DEPS $MRTRIX3_TEMP_DEPS \
+    && apt-get remove --purge -y $BUILD_TEMP_DEPS $MRTRIX3_TEMP_DEPS $NEURODOCKER_DEPS \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 

@@ -4,9 +4,9 @@ Hosts Dockerfiles to build MRtrix3 containers
 
 ## Compression
 
-Following are instructions for utilising `neurodocker reprozip trace` command to minimise the size of the resulting Docker container.
+Following are instructions for utilising `neurodocker reprozip trace` command to minimise the size of the resulting Docker image.
 
-1. Constructing base container:
+1. Constructing base image:
 
     1.  Install the `docker` and `neurodocker` Python packages:
         `pip install docker neurodocker`
@@ -29,15 +29,15 @@ Following are instructions for utilising `neurodocker reprozip trace` command to
     1.  Create a new image from the minified container:
         `docker export mrtrix3_minify | docker import - MRtrix3:base`
 
-    1.  Upload this container to DockerHub:
+    1.  Upload this image to DockerHub:
         `docker push MRtrix3:base`
 
-1. Constructing main container:
+1. Constructing main image:
 
     1.  Build using the `Dockerfile` recipe contained in this repository:
         `docker build Dockerfile -t MRtrix3:latest`
 
-    1.  Upload this container to DockerHub:
+    1.  Upload this image to DockerHub:
         `docker push MRtrix3:latest`
 
 **TODO Update instructions with addition of *MRtrix3* version tags**
