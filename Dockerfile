@@ -32,6 +32,7 @@ RUN apt-get -qq update \
           dc \
           libfftw3-dev \
           libgl1-mesa-dev \
+          liblapack-dev \
           libpng-dev \
           libqt5opengl5-dev \
           libqt5svg5-dev \
@@ -56,7 +57,7 @@ COPY acpcdetect_v2.0_LinuxCentOS6.7.tar.gz /opt/art/acpcdetect_v2.0_LinuxCentOS6
 RUN tar -xf acpcdetect_v2.0_LinuxCentOS6.7.tar.gz \
     && rm -f acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
 
-# Install ANTs.
+# Install ANTs
 WORKDIR /opt/antssource
 RUN git clone -b v2.3.4 --depth 1 https://github.com/ANTsX/ANTs.git \
     && mkdir /opt/antssource/build /opt/antssource/install \
@@ -71,7 +72,7 @@ RUN git clone -b v2.3.4 --depth 1 https://github.com/ANTsX/ANTs.git \
 WORKDIR /opt/freesurfer
 RUN wget -q https://raw.githubusercontent.com/freesurfer/freesurfer/v7.1.1/distribution/FreeSurferColorLUT.txt
 
-# Install FSL.
+# Install FSL
 WORKDIR /
 RUN wget -q http://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py -O /fslinstaller.py \
     && chmod 775 /fslinstaller.py \
@@ -79,7 +80,7 @@ RUN wget -q http://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py -O /fslinstal
     && rm -f /fslinstaller.py \
     && ( which immv || ( echo "FSLPython not properly configured; re-running" && rm -rf /opt/fsl/fslpython && /opt/fsl/etc/fslconf/fslpython_install.sh -f /opt/fsl || ( cat /tmp/fslpython*/fslpython_miniconda_installer.log && exit 1 ) ) )
 
-# Do a system cleanup.
+# Do a system cleanup
 RUN apt-get clean \
     && apt-get remove --purge -y $OTHER_TEMP_DEPS \
     && apt-get autoremove -y \
