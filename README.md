@@ -24,7 +24,7 @@ Following are instructions for utilising `neurodocker reprozip trace` command to
         `docker run --rm -itd --name mrtrix3_minify --security-opt=seccomp:unconfined --volume $(pwd)/script_test_data-master:/mnt mrtrix3_preminify:latest`
 
     1.  Instruct the container to run the requisite tests to identify and remove unused external software dependencies:
-        `neurodocker-minify --container mrtrix3_minify -d /opt/ants /opt/art /opt/fsl`
+        `neurodocker-minify --container mrtrix3_minify -d /opt/ants /opt/art /opt/fsl /entrypoint.sh`
 
     1.  Create a new image from the minified container:
         `docker export mrtrix3_minify | docker import - MRtrix3:base`

@@ -88,4 +88,3 @@ RUN ln -s /usr/bin/python3 /usr/bin/python
 COPY entrypoint_base.sh /entrypoint.sh
 RUN chmod 775 /entrypoint.sh
 
-ENTRYPOINT ["/entrypoint.sh"]
