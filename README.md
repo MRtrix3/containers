@@ -2,7 +2,25 @@
 
 Hosts Dockerfiles to build MRtrix3 containers
 
-## Build
+## Build Docker image
+
+```
+docker build --tag mrtrix3 .
+```
+
+Set `DOCKER_BUILDKIT=1` to build parts of the Docker image in parallel and greatly speed up build time. Use `--build-arg MAKE_JOBS=4` to build MRtrix3 with 4 processors. Substitute this with any number of processors > 0.
+
+## Run GUI
+
+These instructions are for Linux.
+
+```
+xhost +local:root
+docker run --rm -it -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY mrtrix3 mrview
+xhost -local:root  # Run this when finished.
+```
+
+## Update minified ANTs and FSL installations
 
 1. Build full Docker image, with complete ANTs and FSL installations
 
@@ -44,10 +62,10 @@ Hosts Dockerfiles to build MRtrix3 containers
     docker stop mrtrix3
     ```
 
-3. Build Dockerfile
+3. Build Docker image
 
     ```
-    DOCKER_BUILDKIT=1 docker build --tag mrtrix3:slim --file slim.Dockerfile --build-arg MAKE_JOBS=6 .
+    DOCKER_BUILDKIT=1 docker build --tag mrtrix3 --build-arg MAKE_JOBS=6 .
     ```
 
     In this Dockerfile, the only software being compiled is MRtrix3, so all (or most) CPU cores can be used for the build. The minified parts of ANTs and FSL are downloaded from the web.
