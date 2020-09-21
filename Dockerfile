@@ -1,4 +1,4 @@
-FROM MRtrix3:base
+FROM mrtrix3/base:0.0.1
 
 # Git commit from which to build MRtrix3
 ARG MRTRIX3_GIT_COMMITISH="master"

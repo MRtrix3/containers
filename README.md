@@ -27,18 +27,26 @@ Following are instructions for utilising `neurodocker reprozip trace` command to
         `neurodocker-minify --container mrtrix3_minify -d /opt/ants /opt/art /opt/fsl /entrypoint.sh`
 
     1.  Create a new image from the minified container:
-        `docker export mrtrix3_minify | docker import - MRtrix3:base`
+        `docker export mrtrix3_minify | docker import - mrtrix3_base`
 
-    1.  Upload this image to DockerHub:
-        `docker push MRtrix3:base`
+    1.  Tag and upload this image to DockerHub:
+        ```
+        docker tag mrtrix3_base mrtrix3/base:#.#.#
+        docker login
+        docker push mrtrix3/base:#.#.#
+        ```
+        (Replace "#.#.#" with appropriate tag for MRtrix3 base container)
 
 1. Constructing main image:
 
     1.  Build using the `Dockerfile` recipe contained in this repository:
-        `docker build Dockerfile -t MRtrix3:latest`
+        `docker build . -t mrtrix3`
 
-    1.  Upload this image to DockerHub:
-        `docker push MRtrix3:latest`
-
-**TODO Update instructions with addition of *MRtrix3* version tags**
+    1.  Tag and upload this image to DockerHub:
+        ```
+        docker tag mrtrix3 mrtrrx3/mrtrix3:#.#.#
+        docker login
+        docker push mrtrix3/mrtrix3:#.#.#
+        ```
+        (Replace "#.#.#" with corresponding MRtrix3 version tag)
 
