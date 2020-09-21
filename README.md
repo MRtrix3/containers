@@ -44,7 +44,7 @@ Following are instructions for utilising `neurodocker reprozip trace` command to
 
     1.  Tag and upload this image to DockerHub:
         ```
-        docker tag mrtrix3 mrtrrx3/mrtrix3:#.#.#
+        docker tag mrtrix3 mrtrix3/mrtrix3:#.#.#
         docker login
         docker push mrtrix3/mrtrix3:#.#.#
         ```
