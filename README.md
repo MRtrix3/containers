@@ -11,8 +11,9 @@ Following are instructions for utilising `neurodocker reprozip trace` command to
     1.  Install the `docker` and `neurodocker` Python packages:
         `pip install docker neurodocker`
     
-    1.  Download the ACPCdetect tool from NITRC into the working directory:
-        https://www.nitrc.org/frs/download.php/10595/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
+    1.  Download the ACPCdetect tool from NITRC into the working directory
+        This cannot be downloaded directly via e.g. `wget`, as it requires logging in to NITRC, so place the following path into a web browser::
+        `https://www.nitrc.org/frs/download.php/10595/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz`
 
     1.  Build a Docker container utilising the `Dockerfile_base` recipe contained in this repository; here the name `mrtrix3_preminify:latest` is used:
         `docker build - -f Dockerfile_base -t mrtrix3_preminify:latest`
