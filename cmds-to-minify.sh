@@ -39,3 +39,4 @@ rm -rf /tmp/seepi.mif /tmp/dwifslpreproc.mif /tmp/eddyqc
 labelsgmfix /mnt/BIDS/sub-01/anat/aparc+aseg.mgz /mnt/BIDS/sub-01/anat/sub-01_T1w.nii.gz \
     /mnt/labelsgmfix/FreeSurferColorLUT.txt /tmp/labelsgmfix.mif -force
 rm -f /tmp/labelsgmfix.mif
+

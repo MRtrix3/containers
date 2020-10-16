@@ -6,22 +6,18 @@ FROM buildpack-deps:buster AS base-builder
 
 FROM base-builder as mrtrix3-builder
 
-# Git commit from which to build MRtrix3.
+# Git commitish from which to build MRtrix3.
 ARG MRTRIX3_GIT_COMMITISH="master"
 # Command-line arguments for `./configure`
-ARG MRTRIX3_CONFIGURE_FLAGS=""
+ARG MRTRIX3_CONFIGURE_FLAGS="-nogui"
 # Command-line arguments for `./build`
-ARG MRTRIX3_BUILD_FLAGS=""
+ARG MRTRIX3_BUILD_FLAGS="-persistent"
 
 RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends \
-        dc \
         libeigen3-dev \
         libfftw3-dev \
-        libgl1-mesa-dev \
         libpng-dev \
-        libqt5opengl5-dev \
-        libqt5svg5-dev \
         libtiff5-dev \
         qt5-default \
         zlib1g-dev \
@@ -32,9 +28,10 @@ ARG MAKE_JOBS
 WORKDIR /opt/mrtrix3
 RUN git clone -b ${MRTRIX3_GIT_COMMITISH} --depth 1 https://github.com/MRtrix3/mrtrix3.git . \
     && ./configure $MRTRIX3_CONFIGURE_FLAGS \
-    && NUMBER_OF_PROCESSORS=$MAKE_JOBS ./build $MRTRIX3_BUILD_FLAGS
+    && NUMBER_OF_PROCESSORS=$MAKE_JOBS ./build $MRTRIX3_BUILD_FLAGS \
+    && rm -rf testing/ tmp/
 
-# Compile and  install ANTs.
+# Compile and install ANTs.
 FROM base-builder as ants-builder
 RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends \
@@ -103,37 +100,9 @@ COPY --from=freesurfer-installer /opt/freesurfer /opt/freesurfer
 
 RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends \
-        bc \
         dc \
-        file \
-        libfontconfig1 \
-        libfreetype6 \
-        libgl1-mesa-dev \
-        libgl1-mesa-dri \
-        libglu1-mesa-dev \
-        libgomp1 \
-        libice6 \
-        libxcursor1 \
-        libxft2 \
-        libxinerama1 \
-        libxrandr2 \
-        libxrender1 \
-        libxt6 \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get -qq update \
-    && apt-get install -yq --no-install-recommends \
-        dc \
-        libeigen3-dev \
-        libfftw3-dev \
-        libgl1-mesa-dev \
-        libpng-dev \
-        libqt5opengl5-dev \
-        libqt5svg5-dev \
-        libtiff5-dev \
-        python3-distutils \
-        qt5-default \
-        zlib1g-dev \
+        pigz \
+        python3-distutils
     && rm -rf /var/lib/apt/lists/*
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
@@ -144,12 +113,11 @@ COPY . .
 ENV ANTSPATH=/opt/ants/bin \
     FREESURFER_HOME=/opt/freesurfer \
     FSLDIR=/opt/fsl \
-    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/fsl/lib:/opt/ants/lib:" \
-    PATH="/opt/ants/bin:/opt/fsl/bin:/opt/mrtrix3/bin:$PATH"
-
-ENV FSLOUTPUTTYPE=NIFTI_GZ \
+    FSLOUTPUTTYPE=NIFTI_GZ \
     FSLMULTIFILEQUIT=TRUE \
     FSLTCLSH=$FSLDIR/bin/fsltclsh \
     FSLWISH=$FSLDIR/bin/fslwish
+    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/fsl/lib:/opt/ants/lib:" \
+    PATH="/opt/ants/bin:/opt/fsl/bin:/opt/mrtrix3/bin:$PATH"
 
 ENTRYPOINT ["/bin/bash"]

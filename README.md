@@ -1,16 +1,16 @@
-# Containers for MRtrix3
+# Containers for *MRtrix3*
 
-Hosts Dockerfiles to build MRtrix3 containers
+Hosts Dockerfiles to build *MRtrix3* containers
 
-## Build Docker image
+## Users: Run terminal command
 
 ```
-docker build --tag mrtrix3 .
+docker run --rm -it mrtrix3 <command>
 ```
 
-Set `DOCKER_BUILDKIT=1` to build parts of the Docker image in parallel and greatly speed up build time. Use `--build-arg MAKE_JOBS=4` to build MRtrix3 with 4 processors. Substitute this with any number of processors > 0.
+If not built locally, `docker` will download the latest image from DockerHub.
 
-## Run GUI
+## Users: Run GUI
 
 These instructions are for Linux.
 
@@ -20,52 +20,75 @@ docker run --rm -it -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY mrtrix3
 xhost -local:root  # Run this when finished.
 ```
 
-## Update minified ANTs and FSL installations
+## Users: Locally build Docker image
 
-1. Build full Docker image, with complete ANTs and FSL installations
+```
+docker build --tag mrtrix3 .
+```
 
-    This step should be run very infrequently. The full image is only necessary to create the slim installations of ANTs and FSL, which are used in the slim Docker image. If mrtrix3 programs in the future require other parts of ANTs or FSL (or other software), then the full image will have to be rebuilt, and the slim installations of ANTs and FSL will have to be re-uploaded online.
+Set `DOCKER_BUILDKIT=1` to build parts of the Docker image in parallel, which can speed up build time.
+Use `--build-arg MAKE_JOBS=4` to build *MRtrix3* with 4 processors (can substitute this with any number of processors > 0); if omitted, *MRtrix3* will be built using all available threads.
 
-    ```
-    DOCKER_BUILDKIT=1 docker build --tag mrtrix3:full --file full.Dockerfile --build-arg MAKE_JOBS=2 .
-    ```
+-----
 
-    `DOCKER_BUILDKIT=1` enables BuildKit, which builds separate build stages in parallel. This can greatly speed up Docker build times. In this case, ANTs and MRtrix3 will be compiled in parallel, and FSL will be downloaded at the same time as well.
+## Developers: Update minified external dependencies
 
-    The `MAKE_JOBS` argument controls how many cores are used for compilation of ANTs and MRtrix3. Because both packages are build in parallel, do not specify all of the available cores. Specify fewer than half, so at least one core is available for downloading FSL.
+This process can only be completed by those with write access to the ["*MRtrix3* container dependencies" OSF project](https://osf.io/5rwp3/).
+These files contain "minified" versions of external neuroimaging software package dependencies, containing only those components that are utilised by *MRtrix3* scripts.
+These files should only need to be updated if:
 
-2. Create a minified version of the Docker image.
+-   An *MRtrix3* update introduces a new feature that invokes some new external software tool not previously utilised;
+-   A requisite update occurs in one of these external softwares.
 
-    - Download test data
+1.  Install the `docker` and `neurodocker` Python packages:
+    ````
+    pip install docker neurodocker
+    ````
+
+2. Download test data necessary for minification process.
 
     ```
     curl -fL -# https://github.com/MRtrix3/script_test_data/archive/master.tar.gz | tar xz
     ```
 
+3. Update file `full.Dockerfile` to install the desired versions of external software packages.
+
+4. Build full Docker image, with complete installations of external packages.
+
+    ```
+    DOCKER_BUILDKIT=1 docker build --tag mrtrix3:full --file full.Dockerfile --build-arg MAKE_JOBS=4 .
+    ```
+
+    `DOCKER_BUILDKIT=1` enables BuildKit, which builds separate build stages in parallel.
+    This can speed up Docker build times in some circumstances.
+    In this case, ANTs and *MRtrix3* will be compiled in parallel, and other downloads will be performed at the same time as well.
+
+    The `MAKE_JOBS` argument controls how many cores are used for compilation of ANTs and *MRtrix3*.
+    If BuildKit is utilised, do not specify all of the available threads; specify half or fewer, so that threads are not unnecessarily split across jobs and RAM usage is not excessive.
+
+5. Create a minified version of the Docker image.
+
     ```
     docker run --rm -itd --name mrtrix3 --security-opt=seccomp:unconfined --volume $(pwd)/script_test_data-master:/mnt mrtrix3:full
     neurodocker-minify --dirs-to-prune /opt --container mrtrix3 --commands "bash cmds-to-minify.sh"
-    docker export mrtrix3 | docker import - mrtrix3:minified-ants-fsl
+    docker export mrtrix3 | docker import - mrtrix3:minified
     docker stop mrtrix3
     ```
 
-    - Extract `/opt/ants` and `/opt/fsl` from the image, bundle them into two `.tar.gz` files, and upload somewhere.
+6. Generate tarballs for each of the utilised dependencies.
 
     ```
-    mkdir -p slim-installs
+    mkdir -p tarballs
     docker run --rm -itd --workdir /opt --name mrtrix3 \
-        --volume $(pwd)/slim-installs:/output mrtrix3:minified-ants-fsl bash
-    # Install pigz for multi-core gzip compression.
-    docker exec mrtrix3 bash -c "apt-get update && apt-get install --yes pigz"
-    docker exec mrtrix3 bash -c "tar c ants | pigz -9 > /output/ants.tar.gz"
-    docker exec mrtrix3 bash -c "tar c fsl | pigz -9 > /output/fsl.tar.gz"
+        --volume $(pwd)/tarballs:/output mrtrix3:minified bash
+    docker exec mrtrix3 bash -c "tar c ants | pigz -9 > /output/ants_<version>.tar.gz"
+    docker exec mrtrix3 bash -c "tar c fsl | pigz -9 > /output/fsl_<version>.tar.gz"
     docker stop mrtrix3
     ```
 
-3. Build Docker image
+    For each tarball, manually replace text "`<version>`" with the version number of that particular software that was installed in the full container.
 
-    ```
-    DOCKER_BUILDKIT=1 docker build --tag mrtrix3 --build-arg MAKE_JOBS=6 .
-    ```
+7.  Upload these files to [OSF](https://osf.io/nfx85/).
 
-    In this Dockerfile, the only software being compiled is MRtrix3, so all (or most) CPU cores can be used for the build. The minified parts of ANTs and FSL are downloaded from the web.
+File `Dockerfile` can then be modified to download the desired versions of external software packages.
+As OSF file download links do not contain file names, which would otherwise indicate the version of each software to be downloaded, please ensure that comments within that file are updated to indicate the version of that software within the tarball.
