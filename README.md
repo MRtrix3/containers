@@ -51,12 +51,12 @@ These files should only need to be updated if:
     curl -fL -# https://github.com/MRtrix3/script_test_data/archive/master.tar.gz | tar xz
     ```
 
-3. Update file `full.Dockerfile` to install the desired versions of external software packages.
+3. Update file `minify.Dockerfile` to install the desired versions of external software packages.
 
-4. Build full Docker image, with complete installations of external packages.
+4. Build Docker image for `neurodocker-minify`, with complete installations of external packages.
 
     ```
-    DOCKER_BUILDKIT=1 docker build --tag mrtrix3:full --file full.Dockerfile --build-arg MAKE_JOBS=4 .
+    DOCKER_BUILDKIT=1 docker build --tag mrtrix3:minify --file minify.Dockerfile --build-arg MAKE_JOBS=4 .
     ```
 
     `DOCKER_BUILDKIT=1` enables BuildKit, which builds separate build stages in parallel.
@@ -69,7 +69,7 @@ These files should only need to be updated if:
 5. Create a minified version of the Docker image.
 
     ```
-    docker run --rm -itd --name mrtrix3 --security-opt=seccomp:unconfined --volume $(pwd)/script_test_data-master:/mnt mrtrix3:full
+    docker run --rm -itd --name mrtrix3 --security-opt=seccomp:unconfined --volume $(pwd)/script_test_data-master:/mnt mrtrix3:minify
     neurodocker-minify --dirs-to-prune /opt --container mrtrix3 --commands "bash cmds-to-minify.sh"
     docker export mrtrix3 | docker import - mrtrix3:minified
     docker stop mrtrix3
@@ -86,9 +86,10 @@ These files should only need to be updated if:
     docker stop mrtrix3
     ```
 
-    For each tarball, manually replace text "`<version>`" with the version number of that particular software that was installed in the full container.
+    For each tarball, manually replace text "`<version>`" with the version number of that particular software that was installed in the container.
 
 7.  Upload these files to [OSF](https://osf.io/nfx85/).
 
 File `Dockerfile` can then be modified to download the desired versions of external software packages.
 As OSF file download links do not contain file names, which would otherwise indicate the version of each software to be downloaded, please ensure that comments within that file are updated to indicate the version of that software within the tarball.
+
