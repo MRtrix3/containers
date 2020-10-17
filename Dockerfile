@@ -64,6 +64,7 @@ FROM base AS final
 RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends \
         dc \
+        less \
         libfftw3-3 \
         libgl1-mesa-glx \
         libgomp1 \
