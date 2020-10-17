@@ -1,12 +1,11 @@
-ARG MAKE_JOBS=""
+ARG MAKE_JOBS="1"
 ARG DEBIAN_FRONTEND="noninteractive"
 
+FROM python:3.8-slim AS base
 FROM buildpack-deps:buster AS base-builder
 
 FROM base-builder AS mrtrix3-builder
 
-# Number of processors to use when building MRtrix3.
-ARG MAKE_JOBS
 # Git commitish from which to build MRtrix3.
 ARG MRTRIX3_GIT_COMMITISH="master"
 # Command-line arguments for `./configure`
@@ -28,11 +27,18 @@ RUN apt-get -qq update \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone, build, and install MRtrix3.
+ARG MAKE_JOBS
 WORKDIR /opt/mrtrix3
-RUN git clone -b ${MRTRIX3_GIT_COMMITISH} --depth 1 https://github.com/MRtrix3/mrtrix3.git . \
+RUN git clone -b $MRTRIX3_GIT_COMMITISH --depth 1 https://github.com/MRtrix3/mrtrix3.git . \
     && ./configure $MRTRIX3_CONFIGURE_FLAGS \
     && NUMBER_OF_PROCESSORS=$MAKE_JOBS ./build $MRTRIX3_BUILD_FLAGS \
     && rm -rf tmp
+
+# Download minified ART ACPCdetect (V2.0).
+FROM base-builder as acpcdetect-installer
+WORKDIR /opt/art
+RUN curl -fsSL https://osf.io/73h5s/download \
+    | tar xz --strip-components 1
 
 # Download minified ANTs (2.3.4).
 FROM base-builder as ants-installer
@@ -52,7 +58,7 @@ RUN curl -fsSL https://osf.io/xtpv5/download \
     | tar xz --strip-components 1
 
 # Build final image.
-FROM python:3.8-slim AS final
+FROM base AS final
 
 # Install runtime system dependencies.
 RUN apt-get -qq update \
@@ -61,6 +67,8 @@ RUN apt-get -qq update \
         libfftw3-3 \
         libgl1-mesa-glx \
         libgomp1 \
+        liblapack-dev \
+        libpng16-16 \
         libqt5core5a \
         libqt5gui5 \
         libqt5network5 \
@@ -70,19 +78,22 @@ RUN apt-get -qq update \
         python3-distutils \
     && rm -rf /var/lib/apt/lists/*
 
+COPY --from=acpcdetect-installer /opt/art /opt/art
 COPY --from=ants-installer /opt/ants /opt/ants
 COPY --from=freesurfer-installer /opt/freesurfer /opt/freesurfer
 COPY --from=fsl-installer /opt/fsl /opt/fsl
 COPY --from=mrtrix3-builder /opt/mrtrix3 /opt/mrtrix3
 
-ENV FREESURFER_HOME="/opt/freesurfer" \
-    FSLDIR=/opt/fsl \
-    FSLOUTPUTTYPE=NIFTI_GZ \
-    FSLMULTIFILEQUIT=TRUE \
-    FSLTCLSH=$FSLDIR/bin/fsltclsh \
-    FSLWISH=$FSLDIR/bin/fslwish \
+ENV ANTSPATH="/opt/ants/bin" \
+    ARTHOME="/opt/art" \
+    FREESURFER_HOME="/opt/freesurfer" \
+    FSLDIR="/opt/fsl" \
+    FSLOUTPUTTYPE="NIFTI_GZ" \
+    FSLMULTIFILEQUIT="TRUE" \
+    FSLTCLSH="/opt/fsl/bin/fsltclsh" \
+    FSLWISH="/opt/fsl/bin/fslwish" \
     LD_LIBRARY_PATH="/opt/fsl/lib:$LD_LIBRARY_PATH" \
-    PATH="/opt/mrtrix3/bin:/opt/ants/bin:/opt/fsl/bin:$PATH"
+    PATH="/opt/mrtrix3/bin:/opt/ants/bin:/opt/art/bin:/opt/fsl/bin:$PATH"
 
 WORKDIR /work
 CMD ["/bin/bash"]

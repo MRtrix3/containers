@@ -27,7 +27,7 @@ docker build --tag mrtrix3 .
 ```
 
 Set `DOCKER_BUILDKIT=1` to build parts of the Docker image in parallel, which can speed up build time.
-Use `--build-arg MAKE_JOBS=4` to build *MRtrix3* with 4 processors (can substitute this with any number of processors > 0); if omitted, *MRtrix3* will be built using all available threads.
+Use `--build-arg MAKE_JOBS=4` to build *MRtrix3* with 4 processors (can substitute this with any number of processors > 0); if omitted, *MRtrix3* will be built using a single thread only.
 
 -----
 
@@ -40,20 +40,26 @@ These files should only need to be updated if:
 -   An *MRtrix3* update introduces a new feature that invokes some new external software tool not previously utilised;
 -   A requisite update occurs in one of these external softwares.
 
-1.  Install the `docker` and `neurodocker` Python packages:
+1.  Install the `docker` and `neurodocker` Python packages.
+
     ````
     pip install docker neurodocker
     ````
 
-2. Download test data necessary for minification process.
+2.  Download the ART ACPCdetect tool from NITRC into the working directory.
+
+    This cannot be downloaded directly via e.g. `wget`, as it requires logging in to NITRC; instead, visit the following link with a web browser:
+    [`https://www.nitrc.org/frs/download.php/10595/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz`](https://www.nitrc.org/frs/download.php/10595/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz)
+
+3. Download test data necessary for minification process.
 
     ```
     curl -fL -# https://github.com/MRtrix3/script_test_data/archive/master.tar.gz | tar xz
     ```
 
-3. Update file `minify.Dockerfile` to install the desired versions of external software packages.
+4. Update file `minify.Dockerfile` to install the desired versions of external software packages.
 
-4. Build Docker image for `neurodocker-minify`, with complete installations of external packages.
+5. Build Docker image for `neurodocker-minify`, with complete installations of external packages.
 
     ```
     DOCKER_BUILDKIT=1 docker build --tag mrtrix3:minify --file minify.Dockerfile --build-arg MAKE_JOBS=4 .
@@ -66,7 +72,7 @@ These files should only need to be updated if:
     The `MAKE_JOBS` argument controls how many cores are used for compilation of ANTs and *MRtrix3*.
     If BuildKit is utilised, do not specify all of the available threads; specify half or fewer, so that threads are not unnecessarily split across jobs and RAM usage is not excessive.
 
-5. Create a minified version of the Docker image.
+6. Create a minified version of the Docker image.
 
     ```
     docker run --rm -itd --name mrtrix3 --security-opt=seccomp:unconfined --volume $(pwd)/script_test_data-master:/mnt mrtrix3:minify
@@ -75,12 +81,13 @@ These files should only need to be updated if:
     docker stop mrtrix3
     ```
 
-6. Generate tarballs for each of the utilised dependencies.
+7. Generate tarballs for each of the utilised dependencies.
 
     ```
     mkdir -p tarballs
     docker run --rm -itd --workdir /opt --name mrtrix3 \
         --volume $(pwd)/tarballs:/output mrtrix3:minified bash
+    docker exec mrtrix3 bash -c "tar c art | pigz -9 > /output/acpcdetect_<version>.tar.gz"
     docker exec mrtrix3 bash -c "tar c ants | pigz -9 > /output/ants_<version>.tar.gz"
     docker exec mrtrix3 bash -c "tar c fsl | pigz -9 > /output/fsl_<version>.tar.gz"
     docker stop mrtrix3
