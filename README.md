@@ -31,6 +31,57 @@ Use `--build-arg MAKE_JOBS=4` to build *MRtrix3* with 4 processors (can substitu
 
 -----
 
+## Developers: Create new tagged container on DockerHub
+
+This process can only be completed by those with write access to the [*MRtrix3* DockerHub repository](https://hub.docker.com/repository/docker/mrtrix3/mrtrix3).
+This should be performed in conjunction with every tagged update to [*MRtrix3*](https://github.com/MRtrix3/mrtrix3).
+
+1.  If there is any change to external neuroimaging software dependencies:
+
+    1. Follow the instructions "Update minified external dependencies" below.
+
+    2.  On the `master` branch, update file `Dockerfile` with details of the updated dependencies.
+
+2.  Access the `master` branch in a detached head state:
+
+    ```
+    git checkout --detach master
+    ```
+
+3.  In file `Dockerfile`, modify the line that sets environment variable `MRTRIX3_GIT_COMMITISH` in order to explicitly request the newest *MRtrix3* tag by name, and commit the change.
+
+4.  Build an image using this latest version of `Dockerfile`:
+
+    ```
+    docker build . -t mrtrix3
+    ```
+
+5.  Upload the image to DockerHub:
+
+    ```
+    docker tag mrtrix3 mrtrix3/mrtrix3:3.#.#
+    docker login
+    docker push mrtrix3/mrtrix3:3.#.#
+    ```
+
+    (Replace text "`3.#.#`" with the actual name of the newest *MRtrix3* tag)
+
+6.  Generate a new tag with the same version string as the newest *MRtrix3* tag:
+
+    ```
+    git tag 3.#.#
+    ```
+
+    (Replace text "`3.#.#`" with the actual name of the newest *MRtrix3* tag)
+
+7.  Push this latest tag to GitHub:
+
+    ```
+    git push --tags
+    ```
+
+-----
+
 ## Developers: Update minified external dependencies
 
 This process can only be completed by those with write access to the ["*MRtrix3* container dependencies" OSF project](https://osf.io/5rwp3/).
