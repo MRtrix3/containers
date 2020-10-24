@@ -68,7 +68,7 @@ RUN apt-get -qq update \
         libfftw3-3 \
         libgl1-mesa-glx \
         libgomp1 \
-        liblapack-dev \
+        liblapack3 \
         libpng16-16 \
         libqt5core5a \
         libqt5gui5 \

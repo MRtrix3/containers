@@ -108,7 +108,7 @@ RUN apt-get -qq update \
         dc \
         libfftw3-3 \
         libgomp1 \
-        liblapack-dev \
+        liblapack3 \
         libpng16-16 \
         libquadmath0 \
         libtiff5 \
