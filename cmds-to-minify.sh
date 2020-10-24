@@ -10,8 +10,9 @@ if [ ! -d /mnt/BIDS ]; then
 fi
 
 # Run tests to capture external software dependencies
-5ttgen fsl /mnt/BIDS/sub-01/anat/sub-01_T1w.nii.gz /tmp/5ttgen_fsl.mif -force
-rm -f /tmp/5ttgen_fsl.mif
+5ttgen fsl /mnt/BIDS/sub-01/anat/sub-01_T1w.nii.gz /tmp/5ttgen_fsl_default.mif -force
+5ttgen fsl /mnt/BIDS/sub-01/anat/sub-01_T1w.nii.gz /tmp/5ttgen_fsl_nocrop.mif -nocrop -force
+rm -f /tmp/5ttgen_fsl_default.mif /tmp/5ttgen_fsl_nocrop.mif
 
 5ttgen hsvs /mnt/freesurfer/sub-01 /tmp/5ttgen_hsvs.mif -force
 rm -f /tmp/5ttgen_hsvs.mif
@@ -37,6 +38,6 @@ dwifslpreproc /mnt/BIDS/sub-04/dwi/sub-04_dwi.nii.gz \
 rm -rf /tmp/seepi.mif /tmp/dwifslpreproc.mif /tmp/eddyqc
 
 labelsgmfix /mnt/BIDS/sub-01/anat/aparc+aseg.mgz /mnt/BIDS/sub-01/anat/sub-01_T1w.nii.gz \
-    /mnt/labelsgmfix/FreeSurferColorLUT.txt /tmp/labelsgmfix.mif -force
+    /mnt/labelsgmfix/FreeSurferColorLUT.txt /tmp/labelsgmfix.mif -sgm_amyg_hipp -force
 rm -f /tmp/labelsgmfix.mif
 
