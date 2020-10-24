@@ -1,5 +1,6 @@
 Bootstrap: debootstrap
 OSVersion: focal
+MirrorURL: http://us.archive.ubuntu.com/ubuntu/
 Include: apt
 
 %environment
