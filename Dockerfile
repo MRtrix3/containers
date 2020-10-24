@@ -11,7 +11,7 @@ ARG MRTRIX3_GIT_COMMITISH="master"
 # Command-line arguments for `./configure`
 ARG MRTRIX3_CONFIGURE_FLAGS=""
 # Command-line arguments for `./build`
-ARG MRTRIX3_BUILD_FLAGS="-persistent"
+ARG MRTRIX3_BUILD_FLAGS="-persistent -nopaginate"
 
 RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends \
