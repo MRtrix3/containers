@@ -52,7 +52,7 @@ Include: apt
     # Download FreeSurfer lookup table file (v7.1.1).
     mkdir -p /opt/freesurfer && curl -fsSL -o /opt/freesurfer/FreeSurferColorLUT.txt https://raw.githubusercontent.com/freesurfer/freesurfer/v7.1.1/distribution/FreeSurferColorLUT.txt
     # Download minified FSL (6.0.4).
-    mkdir -p /opt/fsl && curl -fsSL https://osf.io/xtpv5/download | tar xz -C /opt/fsl --strip-components 1
+    mkdir -p /opt/fsl && curl -fsSL https://osf.io/dv258/download | tar xz -C /opt/fsl --strip-components 1
 
 # Use Python3 for anything requesting Python, since Python2 is not installed
     ln -s /usr/bin/python3 /usr/bin/python
