@@ -39,10 +39,10 @@ Include: apt
     apt-get update && apt-get upgrade -y
 
 # Runtime requirements
-    apt-get update && apt-get install -y dc less libfftw3-bin liblapack3 libpng16-16 libtiff5 python3 python3-distutils zlib1g
+    apt-get update && apt-get install -y --no-install-recommends dc less libfftw3-bin liblapack3 libpng16-16 libqt5network5 libqt5widgets5 libtiff5 python3 python3-distutils zlib1g
 
 # Build requirements
-    apt-get update && apt-get install -y build-essential curl git libeigen3-dev libfftw3-dev libpng-dev libtiff5-dev wget zlib1g-dev 
+    apt-get update && apt-get install -y --no-install-recommends build-essential ca-certificates curl git libeigen3-dev libfftw3-dev libgl1-mesa-dev libpng-dev libqt5opengl5-dev libqt5svg5-dev libtiff5-dev qt5-qmake qtbase5-dev-tools wget zlib1g-dev
 
 # Neuroimaging software / data dependencies
     # Download minified ART ACPCdetect (V2.0).
@@ -59,10 +59,10 @@ Include: apt
 
 # MRtrix3 setup
     git clone -b master --depth 1 https://github.com/MRtrix3/mrtrix3.git /opt/mrtrix3
-    cd /opt/mrtrix3 && ./configure -nogui && ./build -persistent -nopaginate && rm -rf testing/ tmp/ && cd ../../
+    cd /opt/mrtrix3 && ./configure && ./build -persistent -nopaginate && rm -rf testing/ tmp/ && cd ../../
 
 # apt cleanup to recover as much space as possible
-    apt-get remove -y build-essential curl git libeigen3-dev libfftw3-dev libpng-dev libtiff5-dev wget zlib1g-dev && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    apt-get remove -y build-essential ca-certificates curl git libeigen3-dev libfftw3-dev libgl1-mesa-dev libpng-dev libqt5opengl5-dev libqt5svg5-dev libtiff5-dev qt5-qmake qtbase5-dev-tools wget zlib1g-dev && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 %runscript
     exec /usr/bin/bash "$@"
