@@ -1,15 +1,15 @@
 ARG MAKE_JOBS="1"
 ARG DEBIAN_FRONTEND="noninteractive"
 
-FROM python:3.8-slim AS base
+FROM debian:buster as base
 FROM buildpack-deps:buster AS base-builder
 
-FROM base-builder AS mrtrix3-builder
+FROM base-builder as mrtrix3-builder
 
 # Git commitish from which to build MRtrix3.
 ARG MRTRIX3_GIT_COMMITISH="master"
 # Command-line arguments for `./configure`
-ARG MRTRIX3_CONFIGURE_FLAGS=""
+ARG MRTRIX3_CONFIGURE_FLAGS="-nogui"
 # Command-line arguments for `./build`
 ARG MRTRIX3_BUILD_FLAGS="-persistent -nopaginate"
 
@@ -17,84 +17,126 @@ RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends \
         libeigen3-dev \
         libfftw3-dev \
-        libgl1-mesa-dev \
         libpng-dev \
-        libqt5opengl5-dev \
-        libqt5svg5-dev \
         libtiff5-dev \
-        qt5-default \
         zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone, build, and install MRtrix3.
 ARG MAKE_JOBS
 WORKDIR /opt/mrtrix3
-RUN git clone -b $MRTRIX3_GIT_COMMITISH --depth 1 https://github.com/MRtrix3/mrtrix3.git . \
+RUN git clone -b ${MRTRIX3_GIT_COMMITISH} --depth 1 https://github.com/MRtrix3/mrtrix3.git . \
     && ./configure $MRTRIX3_CONFIGURE_FLAGS \
     && NUMBER_OF_PROCESSORS=$MAKE_JOBS ./build $MRTRIX3_BUILD_FLAGS \
-    && rm -rf tmp
+    && rm -rf testing/ tmp/
 
-# Download minified ART ACPCdetect (V2.0).
-FROM base-builder as acpcdetect-installer
+# Install ART ACPCdetect.
+from base-builder as acpcdetect-builder
 WORKDIR /opt/art
-RUN curl -fsSL https://osf.io/73h5s/download \
-    | tar xz --strip-components 1
+COPY acpcdetect_v2.0_LinuxCentOS6.7.tar.gz /opt/art/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
+RUN tar -xf acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
 
-# Download minified ANTs (2.3.4).
-FROM base-builder as ants-installer
-WORKDIR /opt/ants
-RUN curl -fsSL https://osf.io/3ad69/download \
-    | tar xz --strip-components 1
+# Compile and install ANTs.
+FROM base-builder as ants-builder
+RUN apt-get -qq update \
+    && apt-get install -yq --no-install-recommends \
+        cmake \
+        make \
+    && rm -rf /var/lib/apt/lists/*
+ARG MAKE_JOBS
+WORKDIR /src/ants
+RUN curl -fsSL https://github.com/ANTsX/ANTs/archive/v2.3.4.tar.gz \
+    | tar xz --strip-components 1 \
+    && mkdir build \
+    && cd build \
+    && cmake \
+        -DBUILD_ALL_ANTS_APPS:BOOL=OFF \
+        -DBUILD_SHARED_LIBS:BOOL=OFF \
+        -DBUILD_TESTING:BOOL=OFF \
+        -DCMAKE_BUILD_TYPE:STRING=Release \
+        -DCMAKE_INSTALL_PREFIX:PATH=/opt/ants \
+        -DRUN_LONG_TESTS:BOOL=OFF \
+        -DRUN_SHORT_TESTS:BOOL=OFF \
+        --target=N4BiasFieldCorrection \
+        .. \
+    && make -j $MAKE_JOBS \
+    && cd ANTS-build \
+    && make install
 
-# Download FreeSurfer files.
-FROM base-builder as freesurfer-installer
+# Install FreeSurfer LUT
+FROM base-builder AS freesurfer-installer
 WORKDIR /opt/freesurfer
 RUN curl -fsSLO https://raw.githubusercontent.com/freesurfer/freesurfer/v7.1.1/distribution/FreeSurferColorLUT.txt
 
-# Download minified FSL (6.0.4)
-FROM base-builder as fsl-installer
+# Install FSL.
+FROM base-builder AS fsl-installer
 WORKDIR /opt/fsl
-RUN curl -fsSL https://osf.io/dv258/download \
-    | tar xz --strip-components 1
-
-# Build final image.
-FROM base AS final
-
-# Install runtime system dependencies.
+RUN curl -fL -# --retry 5 https://fsl.fmrib.ox.ac.uk/fsldownloads/fsl-6.0.4-centos6_64.tar.gz \
+    | tar -xz --strip-components 1
+# Install fslpython in a separate layer to preserve the cache of the (long) download.
 RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends \
+        bc \
         dc \
-        less \
+        file \
+        libfontconfig1 \
+        libfreetype6 \
+        libgl1-mesa-dev \
+        libgl1-mesa-dri \
+        libglu1-mesa-dev \
+        libgomp1 \
+        libice6 \
+        libopenblas-base \
+        libxcursor1 \
+        libxft2 \
+        libxinerama1 \
+        libxrandr2 \
+        libxrender1 \
+        libxt6 \
+        sudo \
+        wget \
+    && rm -rf /var/lib/apt/lists/* \
+    && bash /opt/fsl/etc/fslconf/fslpython_install.sh -f /opt/fsl
+
+FROM base as final
+
+RUN apt-get -qq update \
+    && apt-get install -yq --no-install-recommends \
+        bzip2 \
+        ca-certificates \
+        curl \
+        dc \
         libfftw3-3 \
-        libgl1-mesa-glx \
         libgomp1 \
         liblapack3 \
         libpng16-16 \
-        libqt5core5a \
-        libqt5gui5 \
-        libqt5network5 \
-        libqt5widgets5 \
         libquadmath0 \
         libtiff5 \
+        pigz \
         python3-distutils \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=acpcdetect-installer /opt/art /opt/art
-COPY --from=ants-installer /opt/ants /opt/ants
-COPY --from=freesurfer-installer /opt/freesurfer /opt/freesurfer
-COPY --from=fsl-installer /opt/fsl /opt/fsl
 COPY --from=mrtrix3-builder /opt/mrtrix3 /opt/mrtrix3
+COPY --from=acpcdetect-builder /opt/art /opt/art
+COPY --from=ants-builder /opt/ants /opt/ants
+COPY --from=fsl-installer /opt/fsl /opt/fsl
+COPY --from=freesurfer-installer /opt/freesurfer /opt/freesurfer
 
-ENV ANTSPATH="/opt/ants/bin" \
-    ARTHOME="/opt/art" \
-    FREESURFER_HOME="/opt/freesurfer" \
-    FSLDIR="/opt/fsl" \
-    FSLOUTPUTTYPE="NIFTI_GZ" \
-    FSLMULTIFILEQUIT="TRUE" \
-    FSLTCLSH="/opt/fsl/bin/fsltclsh" \
-    FSLWISH="/opt/fsl/bin/fslwish" \
-    LD_LIBRARY_PATH="/opt/fsl/lib:$LD_LIBRARY_PATH" \
+RUN ln -s /usr/bin/python3 /usr/bin/python
+
+COPY cmds-to-minify.sh /cmds-to-minify.sh
+WORKDIR /
+
+ENV ANTSPATH=/opt/ants/bin \
+    ARTHOME=/opt/art \
+    FREESURFER_HOME=/opt/freesurfer \
+    FSLDIR=/opt/fsl \
+    FSLOUTPUTTYPE=NIFTI_GZ \
+    FSLMULTIFILEQUIT=TRUE \
+    FSLTCLSH=/opt/fsl/bin/fsltclsh \
+    FSLWISH=/opt/fsl/bin/fslwish \
+    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/fsl/lib:/opt/ants/lib:" \
     PATH="/opt/mrtrix3/bin:/opt/ants/bin:/opt/art/bin:/opt/fsl/bin:$PATH"
 
-WORKDIR /work
-CMD ["/bin/bash"]
+ENTRYPOINT ["/bin/bash"]
+
