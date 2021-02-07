@@ -1,8 +1,10 @@
 # Containers for *MRtrix3*
 
-Hosts Dockerfiles to build *MRtrix3* containers
+Hosts recipe files to build *MRtrix3* containers
 
-## Users: Run terminal command
+## Using Docker
+
+#### Run terminal command
 
 ```
 docker run --rm -it mrtrix3 <command>
@@ -10,7 +12,7 @@ docker run --rm -it mrtrix3 <command>
 
 If not built locally, `docker` will download the latest image from DockerHub.
 
-## Users: Run GUI
+#### Run GUI
 
 These instructions are for Linux.
 
@@ -20,7 +22,7 @@ docker run --rm -it -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY mrtrix3
 xhost -local:root  # Run this when finished.
 ```
 
-## Users: Locally build Docker image
+#### Locally build Docker image
 
 ```
 docker build --tag mrtrix3 .
@@ -28,6 +30,32 @@ docker build --tag mrtrix3 .
 
 Set `DOCKER_BUILDKIT=1` to build parts of the Docker image in parallel, which can speed up build time.
 Use `--build-arg MAKE_JOBS=4` to build *MRtrix3* with 4 processors (can substitute this with any number of processors > 0); if omitted, *MRtrix3* will be built using a single thread only.
+
+## Using Singularity
+
+#### Build container natively
+
+```
+singularity build MRtrix3_<version>.sif Singularity
+```
+
+#### Convert from Docker container
+
+```
+singularity build MRtrix3_<version>.sif docker://mrtrix/mrtrix3:<version>
+```
+
+#### Run terminal command
+
+```
+MRtrix3_<version>.sif <command>
+```
+
+#### Run GUI
+
+```
+singularity exec -B /run MRtrix3_<version>.sif mrview
+```
 
 -----
 
