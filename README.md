@@ -1,65 +1,12 @@
-# Containers for *MRtrix3*
+# Container dependencies for *MRtrix3*
 
-Hosts recipe files to build *MRtrix3* containers
-
-## Using Docker
-
-#### Run terminal command
-
-```
-docker run --rm -it mrtrix3 <command>
-```
-
-If not built locally, `docker` will download the latest image from DockerHub.
-
-#### Run GUI
-
-These instructions are for Linux.
-
-```
-xhost +local:root
-docker run --rm -it -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY mrtrix3 mrview
-xhost -local:root  # Run this when finished.
-```
-
-#### Locally build Docker image
-
-```
-docker build --tag mrtrix3 .
-```
-
-Set `DOCKER_BUILDKIT=1` to build parts of the Docker image in parallel, which can speed up build time.
-Use `--build-arg MAKE_JOBS=4` to build *MRtrix3* with 4 processors (can substitute this with any number of processors > 0); if omitted, *MRtrix3* will be built using a single thread only.
-
-## Using Singularity
-
-#### Build container natively
-
-```
-singularity build MRtrix3_<version>.sif Singularity
-```
-
-#### Convert from Docker container
-
-```
-singularity build MRtrix3_<version>.sif docker://mrtrix/mrtrix3:<version>
-```
-
-#### Run terminal command
-
-```
-MRtrix3_<version>.sif <command>
-```
-
-#### Run GUI
-
-```
-singularity exec -B /run MRtrix3_<version>.sif mrview
-```
+This repository is *not* applicable to users of the *MRtrix3* software wishing to
+exploit container technology to utilise that software; it is only to be used by
+maintainers of the *MRtrix3* software. For instructions on how to use container
+technology to execute *MRtrix3* commands, see the relevant [online documentation
+page](https://mrtrix.readthedocs.org/en/latest/instructions/using_containers.html).
 
 -----
-
-## Developers: Update minified external dependencies
 
 This process can only be completed by those with write access to the ["*MRtrix3* container dependencies" OSF project](https://osf.io/5rwp3/).
 These files contain "minified" versions of external neuroimaging software package dependencies, containing only those components that are utilised by *MRtrix3* scripts.
@@ -90,7 +37,7 @@ These files should only need to be updated if:
 5. Build Docker image for `neurodocker-minify`, with complete installations of external packages.
 
     ```
-    DOCKER_BUILDKIT=1 docker build --tag mrtrix3:minify --file minify.Dockerfile --build-arg MAKE_JOBS=4 .
+    DOCKER_BUILDKIT=1 docker build --tag mrtrix3:minify --build-arg MAKE_JOBS=4 .
     ```
 
     `DOCKER_BUILDKIT=1` enables BuildKit, which builds separate build stages in parallel.
@@ -125,6 +72,6 @@ These files should only need to be updated if:
 
 7.  Upload these files to [OSF](https://osf.io/nfx85/).
 
-File `Dockerfile` can then be modified to download the desired versions of external software packages.
+Files `Dockerfile` and `Singularity` in the [main *MRtrix3* repository](https://www.github.com/MRtrix3/mrtrix3) can then be modified to download the desired versions of external software packages.
 As OSF file download links do not contain file names, which would otherwise indicate the version of each software to be downloaded, please ensure that comments within that file are updated to indicate the version of that software within the tarball.
 
