@@ -72,6 +72,7 @@ RUN curl -fsSLO https://raw.githubusercontent.com/freesurfer/freesurfer/v7.1.1/d
 # Install FSL.
 FROM base-builder AS fsl-installer
 WORKDIR /opt/fsl
+COPY FSL_source.txt source.txt
 RUN curl -fL -# --retry 5 https://fsl.fmrib.ox.ac.uk/fsldownloads/fsl-6.0.4-centos6_64.tar.gz \
     | tar -xz --strip-components 1
 # Install fslpython in a separate layer to preserve the cache of the (long) download.
@@ -115,7 +116,6 @@ RUN apt-get -qq update \
         libtiff5 \
         pigz \
         python3-distutils \
-        tree \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=mrtrix3-builder /opt/mrtrix3 /opt/mrtrix3

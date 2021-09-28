@@ -50,17 +50,10 @@ rm -f /tmp/labelsgmfix.mif
 
 cat /opt/ants/ANTSCopyright.txt
 
-##################################################################
-# Capture FSL source code (required by license for distribution) #
-##################################################################
+############################
+# Capture FSL sidecar data #
+############################
 
-fsl_include_subdirs="basisfield bet2 fast4 first first_lib flirt fnirt fslio fslvtkio miscmaths mm newimage niftiio shapeModel topup utils warpfns znzlib"
-for subdir in $fsl_include_subdirs; do
-    tree ${FSLDIR}/include/${subdir}
-done
-fsl_src_subdirs="basisfield bet2 fast4 first first_lib flirt fnirt fslio fslvtkio libmeshutils meshclass miscmaths mm newimage niftiio shapeModel topup utils warpfns znzlib"
-for subdir in $fsl_src_subdirs; do
-    tree ${FSLDIR}/src/${subdir}
-done
+cat ${FSLDIR}/source.txt
 cat ${FSLDIR}/LICENCE
 cat ${FSLDIR}/etc/fslversion
