@@ -61,7 +61,8 @@ RUN curl -fsSL https://github.com/ANTsX/ANTs/archive/v2.3.4.tar.gz \
         .. \
     && make -j $MAKE_JOBS \
     && cd ANTS-build \
-    && make install
+    && make install \
+    && cp /src/ants/ANTSCopyright.txt /opt/ants/
 
 # Install FreeSurfer LUT
 FROM base-builder AS freesurfer-installer
@@ -71,6 +72,7 @@ RUN curl -fsSLO https://raw.githubusercontent.com/freesurfer/freesurfer/v7.1.1/d
 # Install FSL.
 FROM base-builder AS fsl-installer
 WORKDIR /opt/fsl
+COPY FSL_source.txt source.txt
 RUN curl -fL -# --retry 5 https://fsl.fmrib.ox.ac.uk/fsldownloads/fsl-6.0.4-centos6_64.tar.gz \
     | tar -xz --strip-components 1
 # Install fslpython in a separate layer to preserve the cache of the (long) download.
