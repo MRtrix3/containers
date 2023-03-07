@@ -29,15 +29,19 @@ These files should only need to be updated if:
     This cannot be downloaded directly via e.g. `wget`, as it requires logging in to NITRC; instead, visit the following link with a web browser:
     [`https://www.nitrc.org/frs/download.php/10595/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz`](https://www.nitrc.org/frs/download.php/10595/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz)
 
-4. Download test data necessary for minification process.
+4.  Download test data necessary for minification process.
 
     ```
     curl -fL -# https://github.com/MRtrix3/script_test_data/archive/master.tar.gz | tar xz
     ```
 
-5. Update file `minify.Dockerfile` to install the desired versions of external software packages.
+5.  Update file `Dockerfile` to install the desired versions of external software packages.
 
-6. Build Docker image for `neurodocker-minify`, with complete installations of external packages.
+6.  If necessary, update the *MRtrix3* `git` committish so that the container will clone and build a specific version of the *MRtrix3* code base;
+    for instance, rebuilding a dependency container to reflect addition of a new feature in some branch.
+    Note however that such a change should *not* be included in any update commit to this repository.
+
+7.  Build Docker image for `neurodocker minify`, with complete installations of external packages.
 
     ```
     DOCKER_BUILDKIT=1 docker build --tag mrtrix3:minify --build-arg MAKE_JOBS=4 .
@@ -50,16 +54,16 @@ These files should only need to be updated if:
     The `MAKE_JOBS` argument controls how many cores are used for compilation of ANTs and *MRtrix3*.
     If BuildKit is utilised, do not specify all of the available threads; specify half or fewer, so that threads are not unnecessarily split across jobs and RAM usage is not excessive.
 
-7. Create a minified version of the Docker image.
+8.  Create a minified version of the Docker image.
 
     ```
     docker run --rm -itd --name mrtrix3 --security-opt=seccomp:unconfined --volume $(pwd)/script_test_data-master:/mnt mrtrix3:minify
-    neurodocker-minify --dirs-to-prune /opt --container mrtrix3 --commands "bash cmds-to-minify.sh"
+    neurodocker minify --dir /opt --container mrtrix3 "bash cmds-to-minify.sh"
     docker export mrtrix3 | docker import - mrtrix3:minified
     docker stop mrtrix3
     ```
 
-8. Generate tarballs for each of the utilised dependencies.
+9.  Generate tarballs for each of the utilised dependencies.
 
     ```
     mkdir -p tarballs
@@ -73,7 +77,7 @@ These files should only need to be updated if:
 
     For each tarball, manually replace text "`<version>`" with the version number of that particular software that was installed in the container.
 
-9.  Upload these files to [OSF](https://osf.io/nfx85/).
+10. Upload these files to [OSF](https://osf.io/nfx85/).
 
 Files `Dockerfile` and `Singularity` in the [main *MRtrix3* repository](https://www.github.com/MRtrix3/mrtrix3) can then be modified to download the desired versions of external software packages.
 As OSF file download links do not contain file names, which would otherwise indicate the version of each software to be downloaded, please ensure that comments within that file are updated to indicate the version of that software within the tarball.
