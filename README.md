@@ -70,8 +70,11 @@ These files should only need to be updated if:
     docker run --rm -itd --workdir /opt --name mrtrix3 \
         --volume $(pwd)/tarballs:/output mrtrix3:minified bash
     docker exec mrtrix3 bash -c "find art/ -type f | tar c --files-from=/dev/stdin | pigz -9 > /output/acpcdetect_<version>.tar.gz"
+    docker exec mrtrix3 bash -c "find afni/ -type f | tar c --files-from=/dev/stdin | pigz -9 > /output/afni_<version>.tar.gz"
     docker exec mrtrix3 bash -c "find ants/ -type f | tar c --files-from=/dev/stdin | pigz -9 > /output/ants_<version>.tar.gz"
+    docker exec mrtrix3 bash -c "find freesurfer/ -type f | tar c --files-from=/dev/stdin | pigz -9 > /output/freesurfer_<version>.tar.gz"
     docker exec mrtrix3 bash -c "find fsl/ -type f | tar c --files-from=/dev/stdin | pigz -9 > /output/fsl_<version>.tar.gz"
+    docker exec mrtrix3 bash -c "find hdbet/ -type f | tar c --files-from=/dev/stdin | pigz -9 > /output/hdbet_<version>.tar.gz"
     docker stop mrtrix3
     ```
 
