@@ -20,6 +20,43 @@ rm -f /tmp/5ttgen_fsl_default.mif /tmp/5ttgen_fsl_nocrop.mif
 5ttgen hsvs /mnt/freesurfer/sub-01 /tmp/5ttgen_hsvs.mif -force
 rm -f /tmp/5ttgen_hsvs.mif
 
+# For dwi2mask, don't use consensus, since that will happily skip specific algorithms
+#   if there is some error in their execution; here we want to make sure that
+#   all are successful and all dependencies are present and captured
+
+dwi2mask 3dautomask /mnt/BIDS/sub-01/dwi/sub-01_dwi.nii.gz /tmp/dwi2mask_3dautomask.mif \
+    -fslgrad /mnt/BIDS/sub-01/dwi/sub-01_dwi.bvec /mnt/BIDS/sub-01/dwi/sub-01_dwi.bval -force
+rm -f /tmp/dwi2mask_3dautomask.mif
+
+dwi2mask ants /mnt/BIDS/sub-01/dwi/sub-01_dwi.nii.gz /tmp/dwi2mask_ants.mif \
+    -fslgrad /mnt/BIDS/sub-01/dwi/sub-01_dwi.bvec /mnt/BIDS/sub-01/dwi/sub-01_dwi.bval -force
+rm -f /tmp/dwi2mask_ants.mif
+
+# TODO Need template for dwi2mask b02template
+dwi2mask b02template /mnt/BIDS/sub-01/dwi/sub-01_dwi.nii.gz /tmp/dwi2mask_b02template_antsquick.mif \
+    -fslgrad /mnt/BIDS/sub-01/dwi/sub-01_dwi.bvec /mnt/BIDS/sub-01/dwi/sub-01_dwi.bval \
+    -software antsquick -force
+dwi2mask b02template /mnt/BIDS/sub-01/dwi/sub-01_dwi.nii.gz /tmp/dwi2mask_b02template_antsfull.mif \
+    -fslgrad /mnt/BIDS/sub-01/dwi/sub-01_dwi.bvec /mnt/BIDS/sub-01/dwi/sub-01_dwi.bval \
+    -software antsfull -force
+dwi2mask b02template /mnt/BIDS/sub-01/dwi/sub-01_dwi.nii.gz /tmp/dwi2mask_b02template_fsl.mif \
+    -fslgrad /mnt/BIDS/sub-01/dwi/sub-01_dwi.bvec /mnt/BIDS/sub-01/dwi/sub-01_dwi.bval \
+    -software fsl -force
+rm -f /tmp/dwi2mask_b02template_antsquick.mif /tmp/dwi2mask_b02template_antsfull.mif /tmp/dwi2mask_b02template_fsl.mif
+
+dwi2mask fslbet /mnt/BIDS/sub-01/dwi/sub-01_dwi.nii.gz /tmp/dwi2mask_fslbet.mif \
+    -fslgrad /mnt/BIDS/sub-01/dwi/sub-01_dwi.bvec /mnt/BIDS/sub-01/dwi/sub-01_dwi.bval -force
+rm -f /tmp/dwi2mask_fslbet.mif
+
+dwi2mask hdbet /mnt/BIDS/sub-01/dwi/sub-01_dwi.nii.gz /tmp/dwi2mask_hdbet.mif -nogpu \
+    -fslgrad /mnt/BIDS/sub-01/dwi/sub-01_dwi.bvec /mnt/BIDS/sub-01/dwi/sub-01_dwi.bval -force
+rm -f /tmp/dwi2mask_hdbet.mif
+
+# TODO Capture both models, with and without CSF
+dwi2mask synthstrip /mnt/BIDS/sub-01/dwi/sub-01_dwi.nii.gz /tmp/dwi2mask_synthstrip.mif \
+    -fslgrad /mnt/BIDS/sub-01/dwi/sub-01_dwi.bvec /mnt/BIDS/sub-01/dwi/sub-01_dwi.bval -force
+rm -f /tmp/dwi2mask_synthstrip.mif
+
 dwibiascorrect ants /mnt/BIDS/sub-01/dwi/sub-01_dwi.nii.gz \
     -fslgrad /mnt/BIDS/sub-01/dwi/sub-01_dwi.bvec /mnt/BIDS/sub-01/dwi/sub-01_dwi.bval /tmp/dwibiascorrect_ants.mif -force
 rm -f /tmp/dwibiascorrect_ants.mif
@@ -44,16 +81,32 @@ labelsgmfix /mnt/BIDS/sub-01/anat/aparc+aseg.mgz /mnt/BIDS/sub-01/anat/sub-01_T1
     /mnt/labelsgmfix/FreeSurferColorLUT.txt /tmp/labelsgmfix.mif -sgm_amyg_hipp -force
 rm -f /tmp/labelsgmfix.mif
 
+#############################
+# Capture AFNI sidecar data #
+#############################
+cat /opt/afni/AFNI_version.txt
+cat /opt/afni/README.copyright
+
 ###########################################################################
 # Capture ANTs license file (required by license for binary distribution) #
 ###########################################################################
-
 cat /opt/ants/ANTSCopyright.txt
+
+###################################
+# Capture FreeSurfer sidecar data #
+###################################
+cat /opt/freesurfer/build-stamp.txt
+# TODO Find out if this is sufficient for minify to capture these
+ls -la /opt/freesurfer/docs
 
 ############################
 # Capture FSL sidecar data #
 ############################
-
 cat ${FSLDIR}/source.txt
 cat ${FSLDIR}/LICENCE
 cat ${FSLDIR}/etc/fslversion
+
+##########################
+# Capture HD-BET license #
+##########################
+cat /opt/hdbet/LICENSE
