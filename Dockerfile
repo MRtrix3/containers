@@ -1,8 +1,8 @@
 ARG MAKE_JOBS="1"
 ARG DEBIAN_FRONTEND="noninteractive"
 
-FROM debian:buster as base
-FROM buildpack-deps:buster AS base-builder
+FROM debian:bookworm as base
+FROM buildpack-deps:bookworm AS base-builder
 
 FROM base-builder as mrtrix3-builder
 
@@ -19,6 +19,7 @@ RUN apt-get -qq update \
         libfftw3-dev \
         libpng-dev \
         libtiff5-dev \
+        python3 \
         zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
@@ -26,15 +27,15 @@ RUN apt-get -qq update \
 ARG MAKE_JOBS
 WORKDIR /opt/mrtrix3
 RUN git clone -b ${MRTRIX3_GIT_COMMITISH} --depth 1 https://github.com/MRtrix3/mrtrix3.git . \
-    && ./configure $MRTRIX3_CONFIGURE_FLAGS \
-    && NUMBER_OF_PROCESSORS=$MAKE_JOBS ./build $MRTRIX3_BUILD_FLAGS \
+    && python3 ./configure $MRTRIX3_CONFIGURE_FLAGS \
+    && NUMBER_OF_PROCESSORS=$MAKE_JOBS python3 ./build $MRTRIX3_BUILD_FLAGS \
     && rm -rf testing/ tmp/
 
 # Install ART ACPCdetect.
 from base-builder as acpcdetect-builder
 WORKDIR /opt/art
-COPY acpcdetect_v2.0_LinuxCentOS6.7.tar.gz /opt/art/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
-RUN tar -xf acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
+COPY acpcdetect_V2.1_LinuxCentOS6.7.tar.gz /opt/art/acpcdetect_V2.1_LinuxCentOS6.7.tar.gz
+RUN tar -xf acpcdetect_V2.1_LinuxCentOS6.7.tar.gz
 
 # Compile and install ANTs.
 FROM base-builder as ants-builder
@@ -45,7 +46,7 @@ RUN apt-get -qq update \
     && rm -rf /var/lib/apt/lists/*
 ARG MAKE_JOBS
 WORKDIR /src/ants
-RUN curl -fsSL https://github.com/ANTsX/ANTs/archive/v2.3.4.tar.gz \
+RUN curl -fsSL https://github.com/ANTsX/ANTs/archive/v2.5.2.tar.gz \
     | tar xz --strip-components 1 \
     && mkdir build \
     && cd build \
@@ -57,7 +58,7 @@ RUN curl -fsSL https://github.com/ANTsX/ANTs/archive/v2.3.4.tar.gz \
         -DCMAKE_INSTALL_PREFIX:PATH=/opt/ants \
         -DRUN_LONG_TESTS:BOOL=OFF \
         -DRUN_SHORT_TESTS:BOOL=OFF \
-        --target=N4BiasFieldCorrection \
+#        --target=N4BiasFieldCorrection \
         .. \
     && make -j $MAKE_JOBS \
     && cd ANTS-build \
@@ -72,10 +73,6 @@ RUN curl -fsSLO https://raw.githubusercontent.com/freesurfer/freesurfer/v7.1.1/d
 # Install FSL.
 FROM base-builder AS fsl-installer
 WORKDIR /opt/fsl
-COPY FSL_source.txt source.txt
-RUN curl -fL -# --retry 5 https://fsl.fmrib.ox.ac.uk/fsldownloads/fsl-6.0.4-centos6_64.tar.gz \
-    | tar -xz --strip-components 1
-# Install fslpython in a separate layer to preserve the cache of the (long) download.
 RUN apt-get -qq update \
     && apt-get install -yq --no-install-recommends \
         bc \
@@ -88,17 +85,22 @@ RUN apt-get -qq update \
         libglu1-mesa-dev \
         libgomp1 \
         libice6 \
-        libopenblas-base \
+        libopenblas0 \
         libxcursor1 \
         libxft2 \
         libxinerama1 \
         libxrandr2 \
         libxrender1 \
         libxt6 \
+        python3 \
         sudo \
         wget \
-    && rm -rf /var/lib/apt/lists/* \
-    && bash /opt/fsl/etc/fslconf/fslpython_install.sh -f /opt/fsl
+    && rm -rf /var/lib/apt/lists/*
+RUN wget https://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py \
+    && python3 fslinstaller.py -V 6.0.7.7 -d /opt/fsl -m -o
+# Have to run this after the installation script;
+#   it wipes all pre-existing contents of the directory
+COPY FSL_source.txt source.txt
 
 FROM base as final
 
@@ -108,13 +110,15 @@ RUN apt-get -qq update \
         ca-certificates \
         curl \
         dc \
-        libfftw3-3 \
+        libfftw3-single3 \
+        libfftw3-double3 \
         libgomp1 \
         liblapack3 \
         libpng16-16 \
         libquadmath0 \
-        libtiff5 \
+        libtiff5-dev \
         pigz \
+        python3 \
         python3-distutils \
     && rm -rf /var/lib/apt/lists/*
 
@@ -137,8 +141,8 @@ ENV ANTSPATH=/opt/ants/bin \
     FSLMULTIFILEQUIT=TRUE \
     FSLTCLSH=/opt/fsl/bin/fsltclsh \
     FSLWISH=/opt/fsl/bin/fslwish \
-    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/fsl/lib:/opt/ants/lib:" \
-    PATH="/opt/mrtrix3/bin:/opt/ants/bin:/opt/art/bin:/opt/fsl/bin:$PATH"
+    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/fsl/lib:/opt/ants/lib" \
+    PATH="/opt/mrtrix3/bin:/opt/ants/bin:/opt/art/bin:/opt/fsl/share/fsl/bin:$PATH"
 
 ENTRYPOINT ["/bin/bash"]
 

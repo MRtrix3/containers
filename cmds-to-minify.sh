@@ -55,5 +55,6 @@ cat /opt/ants/ANTSCopyright.txt
 ############################
 
 cat ${FSLDIR}/source.txt
-cat ${FSLDIR}/LICENCE
+cat ${FSLDIR}/LICENCE.FSL
+cat ${FSLDIR}/LICENSE.txt
 cat ${FSLDIR}/etc/fslversion
