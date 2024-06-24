@@ -141,7 +141,7 @@ ENV ANTSPATH=/opt/ants/bin \
     FSLMULTIFILEQUIT=TRUE \
     FSLTCLSH=/opt/fsl/bin/fsltclsh \
     FSLWISH=/opt/fsl/bin/fslwish \
-    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/fsl/lib:/opt/ants/lib" \
+    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/ants/lib" \
     PATH="/opt/mrtrix3/bin:/opt/ants/bin:/opt/art/bin:/opt/fsl/share/fsl/bin:$PATH"
 
 ENTRYPOINT ["/bin/bash"]
